@@ -1,0 +1,406 @@
+/* ================ EVENT & RSVP CARDS ================ */
+
+/* --- Event Card (List Page) --- */
+.ev-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: 0;
+    overflow: hidden;
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1), box-shadow 0.35s cubic-bezier(.4,0,.2,1);
+}
+.ev-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.ev-card__inner {
+    display: flex;
+    gap: 20px;
+    padding: 28px 28px 20px;
+    align-items: flex-start;
+}
+
+/* Date badge */
+.ev-date {
+    min-width: 60px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    flex-shrink: 0;
+}
+.ev-date__month {
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 5px 0;
+}
+.ev-date__day {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-dark);
+    padding: 6px 0 8px;
+    line-height: 1;
+}
+
+/* Event meta */
+.ev-meta {
+    flex: 1;
+    min-width: 0;
+}
+.ev-meta__title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ev-meta__info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.ev-meta__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-main);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+}
+.ev-meta__chip i {
+    font-size: 14px;
+    opacity: .7;
+}
+
+/* Description */
+.ev-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.55;
+    padding: 0 28px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+/* RSVP actions bar */
+.ev-actions {
+    display: flex;
+    gap: 10px;
+    padding: 16px 28px 24px;
+    align-items: center;
+}
+
+.rsvp-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Default (not RSVPed) */
+.rsvp-btn--default {
+    background: var(--primary-color);
+    color: var(--primary-inverse);
+}
+.rsvp-btn--default:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+.rsvp-btn--default:active { transform: translateY(0); }
+
+/* Already RSVPed */
+.rsvp-btn--active {
+    background: transparent;
+    color: var(--text-dark);
+    border: 1.5px solid var(--border-color);
+}
+.rsvp-btn--active:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+.rsvp-btn--active .rsvp-btn__check {
+    color: #22c55e;
+}
+
+.detail-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 11px 18px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-muted);
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.detail-link:hover {
+    background: var(--border-color);
+    color: var(--text-dark);
+}
+.detail-link i { font-size: 16px; }
+
+/* --- Event Detail RSVP Box --- */
+.rsvp-box {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    box-shadow: var(--shadow-soft);
+}
+.rsvp-box__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.rsvp-box__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.rsvp-box__title i {
+    font-size: 20px;
+    opacity: .6;
+}
+.rsvp-box__count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+.rsvp-box__count i {
+    font-size: 14px;
+    color: #22c55e;
+}
+
+/* Stacked avatar faces */
+.rsvp-faces {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    min-height: 44px;
+}
+.rsvp-faces__avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2.5px solid var(--bg-card);
+    object-fit: cover;
+    margin-left: -10px;
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1), z-index 0s;
+    position: relative;
+    cursor: pointer;
+}
+.rsvp-faces__avatar:first-child { margin-left: 0; }
+.rsvp-faces__avatar:hover {
+    transform: scale(1.2) translateY(-4px);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.rsvp-faces__more {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2.5px solid var(--bg-card);
+    margin-left: -10px;
+    background: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+.rsvp-faces__empty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-light);
+    padding: 8px 0;
+    width: 100%;
+}
+.rsvp-faces__empty i {
+    font-size: 18px;
+    opacity: .5;
+}
+
+/* Full-width RSVP button (detail page) */
+.rsvp-btn-full {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 24px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+}
+.rsvp-btn-full--default {
+    background: var(--primary-color);
+    color: var(--primary-inverse);
+}
+.rsvp-btn-full--default:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.rsvp-btn-full--default:active { transform: translateY(0); }
+
+.rsvp-btn-full--active {
+    background: transparent;
+    color: var(--text-dark);
+    border: 1.5px solid var(--border-color);
+}
+.rsvp-btn-full--active:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+.rsvp-btn-full--active .rsvp-btn__check {
+    color: #22c55e;
+}
+
+/* Empty state for events list */
+.ev-empty {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: 48px 24px;
+    text-align: center;
+}
+.ev-empty__icon {
+    width: 64px;
+    height: 64px;
+    background: var(--bg-main);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+.ev-empty__icon i {
+    font-size: 28px;
+    color: var(--text-light);
+}
+.ev-empty__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+.ev-empty__text {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Past event compact row */
+.ev-past {
+    background: var(--bg-card);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    padding: 16px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    transition: background 0.2s;
+}
+.ev-past:hover {
+    background: var(--bg-main);
+}
+.ev-past__date {
+    width: 52px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--bg-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: .65;
+}
+.ev-past__month {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: .8px;
+}
+.ev-past__day {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1;
+}
+.ev-past__year {
+    font-size: 9px;
+    color: var(--text-muted);
+}
+.ev-past__info {
+    flex: 1;
+    min-width: 0;
+}
+.ev-past__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ev-past__loc {
+    font-size: 12px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

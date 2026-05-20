@@ -1,0 +1,603 @@
+{
+	"info": {
+		"_postman_id": "lifeafter-api-collection-v1",
+		"name": "LifeAfter API",
+		"description": "Koleksi endpoint REST API untuk proyek LifeAfter (Laravel 13 + Sanctum).\n\n**Setup:**\n1. Buat environment `LifeAfter Local`\n2. Set variable `base_url` = `http://localhost:8000`\n3. Login dulu → token tersimpan otomatis via Tests script\n\n**Akun Testing (Seeder):**\n- Admin: `admin@lifeafter.test` / `password`\n- Member: `member@lifeafter.test` / `password`",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"description": "Endpoint untuk registrasi, login, logout, dan cek user aktif.",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"User Baru\",\n    \"email\": \"userbaru@test.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						},
+						"description": "Daftarkan user baru sebagai member. Status awal adalah `pending` — user belum bisa login sampai disetujui admin.\n\n**Expected:** 201 Created"
+					},
+					"response": [
+						{
+							"name": "201 Created — Registrasi berhasil",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"User Baru\",\n    \"email\": \"userbaru@test.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+								},
+								"url": {"raw": "{{base_url}}/api/auth/register"}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Pendaftaran berhasil, menunggu persetujuan admin\",\n    \"data\": {\n        \"user\": {\n            \"id\": 3,\n            \"name\": \"User Baru\",\n            \"email\": \"userbaru@test.com\",\n            \"role\": \"member\",\n            \"status\": \"pending\"\n        }\n    }\n}"
+						},
+						{
+							"name": "422 — Validasi gagal (email sudah terdaftar)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [{"key": "Accept", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Admin Angkatan\",\n    \"email\": \"admin@lifeafter.test\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}"
+								},
+								"url": {"raw": "{{base_url}}/api/auth/register"}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Validasi gagal\",\n    \"errors\": {\n        \"email\": [\"Email sudah terdaftar.\"]\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();",
+									"if (res.status === 'success' && res.data && res.data.token) {",
+									"    pm.collectionVariables.set('token', res.data.token);",
+									"    console.log('✅ Token saved:', res.data.token);",
+									"} else {",
+									"    console.log('⚠️ Login gagal atau token tidak ada.');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"member@lifeafter.test\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {"language": "json"}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login menggunakan email dan password. Token Sanctum akan otomatis tersimpan ke variable `token` via Tests script.\n\n**Akun member:** `member@lifeafter.test` / `password`\n**Akun admin:** `admin@lifeafter.test` / `password`"
+					},
+					"response": [
+						{
+							"name": "200 OK — Login berhasil (member)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [{"key": "Accept", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"member@lifeafter.test\",\n    \"password\": \"password\"\n}"
+								},
+								"url": {"raw": "{{base_url}}/api/auth/login"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"token\": \"2|abc123xyz...\",\n        \"user\": {\n            \"id\": 2,\n            \"name\": \"Rafif Dummy\",\n            \"nickname\": null,\n            \"email\": \"member@lifeafter.test\",\n            \"role\": \"member\",\n            \"status\": \"active\",\n            \"city\": \"Bandung\",\n            \"job\": \"Software Engineer\",\n            \"company\": \"Tech Corp\",\n            \"bio\": null,\n            \"quote\": null,\n            \"born_date\": \"2000-05-15\",\n            \"lat\": \"-6.9175000\",\n            \"lng\": \"107.6191000\",\n            \"photo_url\": null,\n            \"social_links\": null,\n            \"created_at\": \"10 Apr 2026\"\n        }\n    }\n}"
+						},
+						{
+							"name": "401 — Email atau password salah",
+							"originalRequest": {
+								"method": "POST",
+								"header": [{"key": "Accept", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"salah@test.com\",\n    \"password\": \"wrongpassword\"\n}"
+								},
+								"url": {"raw": "{{base_url}}/api/auth/login"}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Email atau password salah\"\n}"
+						},
+						{
+							"name": "403 — Akun belum disetujui admin (pending)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [{"key": "Accept", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"userbaru@test.com\",\n    \"password\": \"password123\"\n}"
+								},
+								"url": {"raw": "{{base_url}}/api/auth/login"}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Akun kamu belum disetujui admin\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Current User (Me)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "me"]
+						},
+						"description": "Ambil data user yang sedang login berdasarkan token.\nToken diambil otomatis dari variable `{{token}}`.\n\n**Butuh:** Bearer token (login dulu)"
+					},
+					"response": [
+						{
+							"name": "200 OK — Data user aktif",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/auth/me"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"user\": {\n            \"id\": 2,\n            \"name\": \"Rafif Dummy\",\n            \"nickname\": null,\n            \"email\": \"member@lifeafter.test\",\n            \"role\": \"member\",\n            \"status\": \"active\",\n            \"city\": \"Bandung\",\n            \"job\": \"Software Engineer\",\n            \"company\": \"Tech Corp\",\n            \"born_date\": \"2000-05-15\",\n            \"lat\": \"-6.9175000\",\n            \"lng\": \"107.6191000\",\n            \"photo_url\": null,\n            \"social_links\": null,\n            \"created_at\": \"10 Apr 2026\"\n        }\n    }\n}"
+						},
+						{
+							"name": "401 — Token tidak valid atau tidak ada",
+							"originalRequest": {
+								"method": "GET",
+								"header": [{"key": "Accept", "value": "application/json"}],
+								"url": {"raw": "{{base_url}}/api/auth/me"}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Unauthenticated. Token tidak valid atau tidak ada.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();",
+									"if (res.status === 'success') {",
+									"    pm.collectionVariables.set('token', '');",
+									"    console.log('✅ Token cleared.');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout"]
+						},
+						"description": "Logout dan hapus token aktif dari database.\nSetelah logout, variable `token` otomatis dikosongkan via Tests script."
+					},
+					"response": [
+						{
+							"name": "200 OK — Logout berhasil",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/auth/logout"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Logout berhasil\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"description": "Endpoint untuk direktori anggota, peta, profil, update profil, dan upload foto.",
+			"item": [
+				{
+					"name": "List Anggota (index)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users?city=Bandung&job=engineer&search=rafif&page=1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"],
+							"query": [
+								{"key": "city", "value": "Bandung", "description": "Filter by kota (partial match)"},
+								{"key": "job", "value": "engineer", "description": "Filter by pekerjaan (partial match)"},
+								{"key": "search", "value": "rafif", "description": "Cari by nama atau nickname"},
+								{"key": "page", "value": "1", "description": "Halaman (default: 1, 20 per halaman)"}
+							]
+						},
+						"description": "Ambil daftar semua anggota aktif dengan filter opsional dan pagination 20/halaman.\n\nSemua query param bersifat opsional — bisa dikombinasikan."
+					},
+					"response": [
+						{
+							"name": "200 OK — Daftar anggota",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/users"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Admin Angkatan\",\n            \"nickname\": null,\n            \"city\": \"Jakarta\",\n            \"job\": \"Pengurus Angkatan\",\n            \"company\": null,\n            \"photo_url\": null,\n            \"lat\": null,\n            \"lng\": null\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Rafif Dummy\",\n            \"nickname\": null,\n            \"city\": \"Bandung\",\n            \"job\": \"Software Engineer\",\n            \"company\": \"Tech Corp\",\n            \"photo_url\": null,\n            \"lat\": \"-6.9175000\",\n            \"lng\": \"107.6191000\"\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 20,\n        \"total\": 2\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Peta Anggota (map)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/map",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "map"]
+						},
+						"description": "Ambil semua anggota aktif yang memiliki koordinat `lat` dan `lng` untuk ditampilkan di peta.\nTanpa pagination, max 200 data."
+					},
+					"response": [
+						{
+							"name": "200 OK — Data peta",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/users/map"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"data\": [\n        {\n            \"id\": 2,\n            \"name\": \"Rafif Dummy\",\n            \"nickname\": null,\n            \"city\": \"Bandung\",\n            \"job\": \"Software Engineer\",\n            \"company\": \"Tech Corp\",\n            \"photo_url\": null,\n            \"lat\": \"-6.9175000\",\n            \"lng\": \"107.6191000\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Detail Anggota (show)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/2",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "2"]
+						},
+						"description": "Ambil detail profil lengkap satu anggota aktif berdasarkan ID.\nGanti angka `2` dengan ID anggota yang diinginkan."
+					},
+					"response": [
+						{
+							"name": "200 OK — Detail profil",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/users/2"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"user\": {\n            \"id\": 2,\n            \"name\": \"Rafif Dummy\",\n            \"nickname\": null,\n            \"email\": \"member@lifeafter.test\",\n            \"role\": \"member\",\n            \"status\": \"active\",\n            \"city\": \"Bandung\",\n            \"job\": \"Software Engineer\",\n            \"company\": \"Tech Corp\",\n            \"bio\": null,\n            \"quote\": null,\n            \"born_date\": \"2000-05-15\",\n            \"lat\": \"-6.9175000\",\n            \"lng\": \"107.6191000\",\n            \"photo_url\": null,\n            \"social_links\": null,\n            \"created_at\": \"10 Apr 2026\"\n        }\n    }\n}"
+						},
+						{
+							"name": "404 — Anggota tidak ditemukan",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/users/999"}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Anggota tidak ditemukan\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Profil (update)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Rafif Updated\",\n    \"nickname\": \"Rafif\",\n    \"city\": \"Jakarta\",\n    \"job\": \"Backend Engineer\",\n    \"company\": \"Startup Keren\",\n    \"bio\": \"Suka ngoding dan ngopi.\",\n    \"quote\": \"Code is poetry.\",\n    \"born_date\": \"2000-05-15\",\n    \"lat\": -6.2,\n    \"lng\": 106.8,\n    \"social_links\": {\n        \"instagram\": \"https://instagram.com/rafif\",\n        \"linkedin\": \"https://linkedin.com/in/rafif\"\n    }\n}",
+							"options": {
+								"raw": {"language": "json"}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/2",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "2"]
+						},
+						"description": "Update profil user. **Hanya bisa update profil sendiri** (ID harus sesuai user yang login).\n\nSemua field bersifat opsional — hanya kirim field yang ingin diubah."
+					},
+					"response": [
+						{
+							"name": "200 OK — Profil berhasil diperbarui",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nickname\": \"Rafif\",\n    \"city\": \"Jakarta\"\n}"
+								},
+								"url": {"raw": "{{base_url}}/api/users/2"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Profil berhasil diperbarui\",\n    \"data\": {\n        \"user\": {\n            \"id\": 2,\n            \"name\": \"Rafif Dummy\",\n            \"nickname\": \"Rafif\",\n            \"city\": \"Jakarta\",\n            \"job\": \"Software Engineer\",\n            \"company\": \"Tech Corp\",\n            \"created_at\": \"10 Apr 2026\"\n        }\n    }\n}"
+						},
+						{
+							"name": "403 — Tidak bisa edit profil orang lain",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"body": {"mode": "raw", "raw": "{}"},
+								"url": {"raw": "{{base_url}}/api/users/1"}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Kamu tidak memiliki izin untuk mengubah profil ini\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Upload Foto Profil (uploadPhoto)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "",
+									"description": "File foto profil (JPG/PNG, max 2MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/2/photo",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "2", "photo"]
+						},
+						"description": "Upload foto profil. **Hanya bisa upload foto sendiri.**\n\nPilih file di tab Body → form-data → key `photo` → tipe `File`.\n- Format: JPG, JPEG, PNG\n- Max ukuran: 2MB\n- Foto lama otomatis dihapus"
+					},
+					"response": [
+						{
+							"name": "200 OK — Foto berhasil diupload",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [{"key": "photo", "type": "file", "src": ""}]
+								},
+								"url": {"raw": "{{base_url}}/api/users/2/photo"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Foto profil berhasil diunggah\",\n    \"data\": {\n        \"photo_url\": \"http://localhost:8000/storage/photos/profile/photo_6612ab34ef123.jpg\"\n    }\n}"
+						},
+						{
+							"name": "422 — Validasi foto gagal",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"body": {"mode": "formdata", "formdata": []},
+								"url": {"raw": "{{base_url}}/api/users/2/photo"}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Validasi gagal\",\n    \"errors\": {\n        \"photo\": [\"File foto wajib diunggah.\"]\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"description": "Endpoint khusus admin. Gunakan token dari login akun `admin@lifeafter.test`.",
+			"item": [
+				{
+					"name": "Statistik Platform (stats)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Accept", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "stats"]
+						},
+						"description": "Ambil statistik keseluruhan platform LifeAfter.\n\n⚠️ **Khusus admin** — login dulu dengan `admin@lifeafter.test` / `password`, lalu jalankan request ini."
+					},
+					"response": [
+						{
+							"name": "200 OK — Statistik platform",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/admin/stats"}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"total_members\": 1,\n        \"pending_members\": 1,\n        \"city_distribution\": [\n            {\"city\": \"Bandung\", \"count\": 1}\n        ],\n        \"job_distribution\": [\n            {\"job\": \"Software Engineer\", \"count\": 1}\n        ],\n        \"profile_completion\": {\n            \"complete\": 0,\n            \"incomplete\": 1,\n            \"percentage\": 0.0\n        },\n        \"total_posts\": 0,\n        \"total_gallery\": 0,\n        \"total_events\": 0\n    }\n}"
+						},
+						{
+							"name": "403 — Bukan admin",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{"key": "Accept", "value": "application/json"},
+									{"key": "Authorization", "value": "Bearer {{token}}"}
+								],
+								"url": {"raw": "{{base_url}}/api/admin/stats"}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [{"key": "Content-Type", "value": "application/json"}],
+							"body": "{\n    \"status\": \"error\",\n    \"message\": \"Akses ditolak. Hanya admin yang bisa mengakses fitur ini\"\n}"
+						}
+					]
+				}
+			]
+		}
+	]
+}

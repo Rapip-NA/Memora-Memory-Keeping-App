@@ -1,0 +1,651 @@
+{
+  "info": {
+    "name": "Lifeafter API — Bagian Ryuta",
+    "_postman_id": "lifeafter-api-ryuta-2026",
+    "description": "Postman Collection untuk endpoint bagian Ryuta:\nFeed (Post & Like), Komentar, Galeri, Event & RSVP, Notifikasi, Admin.\n\nBase URL: {{base_url}} = http://localhost:8000\nSemua request butuh header: Authorization: Bearer {{token}}",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "token",    "value": "YOUR_TOKEN_HERE",       "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "Feed",
+      "item": [
+        {
+          "name": "GET Semua Post",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/posts?category=karier&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                { "key": "category", "value": "karier", "description": "Filter: karier|pendidikan|keluarga|perjalanan|lainnya" },
+                { "key": "page",     "value": "1" }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":[{\"id\":1,\"content\":\"Halo semua! Ini post pertama.\",\"photo_url\":null,\"category\":\"karier\",\"likes_count\":3,\"is_liked\":false,\"comments_count\":1,\"author\":{\"id\":1,\"name\":\"Admin Angkatan\",\"photo_url\":null},\"created_at\":\"10 Apr 2026, 10:00\"}],\"links\":{\"first\":\"http://localhost:8000/api/posts?page=1\",\"last\":\"http://localhost:8000/api/posts?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"last_page\":1,\"per_page\":15,\"total\":1}}"
+            }
+          ]
+        },
+        {
+          "name": "POST Buat Post",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "content",  "value": "Ini konten post saya hari ini!", "type": "text" },
+                { "key": "category", "value": "karier", "type": "text" },
+                { "key": "photo",    "type": "file",    "src": "", "description": "Opsional, max 2MB" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/api/posts", "host": ["{{base_url}}"], "path": ["api", "posts"] }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":2,\"content\":\"Ini konten post saya hari ini!\",\"photo_url\":null,\"category\":\"karier\",\"likes_count\":0,\"is_liked\":false,\"comments_count\":0,\"author\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null,\"city\":\"Jakarta\",\"job\":\"Pengurus Angkatan\"},\"created_at\":\"10 Apr 2026, 11:00\"}}"
+            }
+          ]
+        },
+        {
+          "name": "GET Detail Post",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/posts/1", "host": ["{{base_url}}"], "path": ["api", "posts", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"content\":\"Halo semua! Ini post pertama.\",\"photo_url\":null,\"category\":\"karier\",\"likes_count\":3,\"is_liked\":true,\"comments_count\":2,\"author\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null,\"city\":\"Jakarta\",\"job\":\"Pengurus Angkatan\"},\"created_at\":\"10 Apr 2026, 10:00\"}}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"status\":\"error\",\"message\":\"Post tidak ditemukan.\"}"
+            }
+          ]
+        },
+        {
+          "name": "PUT Update Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Konten yang sudah diubah.\",\n  \"category\": \"pendidikan\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/posts/1", "host": ["{{base_url}}"], "path": ["api", "posts", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"content\":\"Konten yang sudah diubah.\",\"photo_url\":null,\"category\":\"pendidikan\",\"likes_count\":3,\"is_liked\":true,\"comments_count\":2,\"author\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null,\"city\":\"Jakarta\",\"job\":\"Pengurus Angkatan\"},\"created_at\":\"10 Apr 2026, 10:00\"}}"
+            },
+            {
+              "name": "403 Forbidden",
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\"status\":\"error\",\"message\":\"Kamu tidak memiliki izin untuk mengubah post ini.\"}"
+            }
+          ]
+        },
+        {
+          "name": "DELETE Hapus Post",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/posts/1", "host": ["{{base_url}}"], "path": ["api", "posts", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Post berhasil dihapus.\"}"
+            }
+          ]
+        },
+        {
+          "name": "POST Toggle Like Post",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/posts/1/like", "host": ["{{base_url}}"], "path": ["api", "posts", "1", "like"] }
+          },
+          "response": [
+            {
+              "name": "200 Liked",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"liked\":true,\"likes_count\":4}}"
+            },
+            {
+              "name": "200 Unliked",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"liked\":false,\"likes_count\":3}}"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Komentar",
+      "item": [
+        {
+          "name": "GET Komentar Post",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/posts/1/comments", "host": ["{{base_url}}"], "path": ["api", "posts", "1", "comments"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":[{\"id\":1,\"body\":\"Komentar pertama!\",\"author\":{\"id\":2,\"name\":\"Rafif Dummy\",\"nickname\":null,\"photo_url\":null},\"created_at\":\"10 Apr 2026, 12:00\",\"is_own\":false}]}"
+            }
+          ]
+        },
+        {
+          "name": "POST Buat Komentar di Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"body\": \"Komentar kamu\"\n}" },
+            "url": { "raw": "{{base_url}}/api/posts/1/comments", "host": ["{{base_url}}"], "path": ["api", "posts", "1", "comments"] }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":2,\"body\":\"Komentar kamu\",\"author\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null},\"created_at\":\"10 Apr 2026, 13:00\",\"is_own\":true}}"
+            }
+          ]
+        },
+        {
+          "name": "GET Komentar Gallery",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/gallery/1/comments", "host": ["{{base_url}}"], "path": ["api", "gallery", "1", "comments"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":[{\"id\":3,\"body\":\"Foto bagus!\",\"author\":{\"id\":2,\"name\":\"Rafif Dummy\",\"nickname\":null,\"photo_url\":null},\"created_at\":\"10 Apr 2026, 14:00\",\"is_own\":false}]}"
+            }
+          ]
+        },
+        {
+          "name": "POST Buat Komentar di Gallery",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"body\": \"Komentar di foto\"\n}" },
+            "url": { "raw": "{{base_url}}/api/gallery/1/comments", "host": ["{{base_url}}"], "path": ["api", "gallery", "1", "comments"] }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":4,\"body\":\"Komentar di foto\",\"author\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null},\"created_at\":\"10 Apr 2026, 15:00\",\"is_own\":true}}"
+            }
+          ]
+        },
+        {
+          "name": "DELETE Hapus Komentar",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/comments/1", "host": ["{{base_url}}"], "path": ["api", "comments", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Komentar berhasil dihapus.\"}"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Galeri",
+      "item": [
+        {
+          "name": "GET Semua Foto Galeri",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/gallery?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "gallery"],
+              "query": [{ "key": "page", "value": "1" }]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":[{\"id\":1,\"photo_url\":\"http://localhost:8000/storage/photos/gallery/abc123.jpg\",\"caption\":\"Foto reuni angkatan...\",\"uploader\":{\"id\":1,\"name\":\"Admin Angkatan\",\"photo_url\":null},\"comments_count\":2,\"created_at\":\"10 Apr 2026\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "POST Upload Foto Galeri",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "photo",   "type": "file", "src": "", "description": "Wajib, max 5MB, jpg/jpeg/png/gif" },
+                { "key": "caption", "value": "Foto reuni angkatan 2024", "type": "text", "description": "Opsional" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/api/gallery", "host": ["{{base_url}}"], "path": ["api", "gallery"] }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"photo_url\":\"http://localhost:8000/storage/photos/gallery/abc123.jpg\",\"caption\":\"Foto reuni angkatan 2024\",\"uploader\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null},\"tagged_users\":[],\"comments_count\":0,\"created_at\":\"10 Apr 2026\"}}"
+            }
+          ]
+        },
+        {
+          "name": "GET Detail Foto Galeri",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/gallery/1", "host": ["{{base_url}}"], "path": ["api", "gallery", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"photo_url\":\"http://localhost:8000/storage/photos/gallery/abc123.jpg\",\"caption\":\"Foto reuni angkatan 2024\",\"uploader\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null},\"tagged_users\":[{\"id\":2,\"name\":\"Rafif Dummy\",\"nickname\":null,\"photo_url\":null}],\"comments_count\":2,\"created_at\":\"10 Apr 2026\"}}"
+            }
+          ]
+        },
+        {
+          "name": "POST Tag Pengguna di Foto",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"user_ids\": [1, 2, 3]\n}" },
+            "url": { "raw": "{{base_url}}/api/gallery/1/tag", "host": ["{{base_url}}"], "path": ["api", "gallery", "1", "tag"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"photo_url\":\"http://localhost:8000/storage/photos/gallery/abc123.jpg\",\"caption\":\"Foto reuni angkatan 2024\",\"uploader\":{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null},\"tagged_users\":[{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null},{\"id\":2,\"name\":\"Rafif Dummy\",\"nickname\":null,\"photo_url\":null}],\"comments_count\":2,\"created_at\":\"10 Apr 2026\"}}"
+            }
+          ]
+        },
+        {
+          "name": "DELETE Hapus Foto Galeri",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/gallery/1", "host": ["{{base_url}}"], "path": ["api", "gallery", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Foto berhasil dihapus.\"}"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Event",
+      "item": [
+        {
+          "name": "GET Semua Event",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/events?upcoming=1&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events"],
+              "query": [
+                { "key": "upcoming", "value": "1", "description": "Filter event yang belum terjadi" },
+                { "key": "past",     "value": "1", "description": "Filter event yang sudah terjadi", "disabled": true },
+                { "key": "page",     "value": "1" }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":[{\"id\":1,\"title\":\"Reuni Angkatan 2024\",\"location\":\"Jakarta\",\"event_date\":\"15 Mei 2026\",\"event_date_raw\":\"2026-05-15T10:00:00.000000Z\",\"is_past\":false,\"attendees_count\":5,\"my_rsvp\":\"hadir\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "GET Detail Event",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/events/1", "host": ["{{base_url}}"], "path": ["api", "events", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"title\":\"Reuni Angkatan 2024\",\"description\":\"Mari berkumpul bersama!\",\"location\":\"Jakarta\",\"event_date\":\"15 Mei 2026, 10:00\",\"event_date_raw\":\"2026-05-15T10:00:00.000000Z\",\"is_past\":false,\"organizer\":{\"id\":1,\"name\":\"Admin Angkatan\",\"photo_url\":null},\"attendees_count\":5,\"my_rsvp\":\"hadir\",\"created_at\":\"10 Apr 2026\"}}"
+            }
+          ]
+        },
+        {
+          "name": "GET Peserta Event",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/events/1/attendees", "host": ["{{base_url}}"], "path": ["api", "events", "1", "attendees"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":[{\"id\":1,\"name\":\"Admin Angkatan\",\"nickname\":null,\"photo_url\":null,\"city\":\"Jakarta\"},{\"id\":2,\"name\":\"Rafif Dummy\",\"nickname\":null,\"photo_url\":null,\"city\":\"Bandung\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "POST RSVP Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"hadir\"\n}" },
+            "url": { "raw": "{{base_url}}/api/events/1/rsvp", "host": ["{{base_url}}"], "path": ["api", "events", "1", "rsvp"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"rsvp_status\":\"hadir\",\"attendees_count\":6}}"
+            }
+          ]
+        },
+        {
+          "name": "[ADMIN] POST Buat Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Reuni Angkatan 2024\",\n  \"description\": \"Mari berkumpul bersama di Jakarta!\",\n  \"event_date\": \"2026-05-15 10:00:00\",\n  \"location\": \"Gedung Serbaguna Jakarta\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/admin/events", "host": ["{{base_url}}"], "path": ["api", "admin", "events"] }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"title\":\"Reuni Angkatan 2024\",\"description\":\"Mari berkumpul bersama di Jakarta!\",\"location\":\"Gedung Serbaguna Jakarta\",\"event_date\":\"15 Mei 2026, 10:00\",\"event_date_raw\":\"2026-05-15T10:00:00.000000Z\",\"is_past\":false,\"organizer\":{\"id\":1,\"name\":\"Admin Angkatan\",\"photo_url\":null},\"attendees_count\":0,\"my_rsvp\":null,\"created_at\":\"10 Apr 2026\"}}"
+            }
+          ]
+        },
+        {
+          "name": "[ADMIN] PUT Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Reuni Angkatan 2024 — Update\",\n  \"location\": \"Hotel Grand Jakarta\"\n}" },
+            "url": { "raw": "{{base_url}}/api/admin/events/1", "host": ["{{base_url}}"], "path": ["api", "admin", "events", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"title\":\"Reuni Angkatan 2024 — Update\",\"description\":\"Mari berkumpul bersama di Jakarta!\",\"location\":\"Hotel Grand Jakarta\",\"event_date\":\"15 Mei 2026, 10:00\",\"event_date_raw\":\"2026-05-15T10:00:00.000000Z\",\"is_past\":false,\"organizer\":{\"id\":1,\"name\":\"Admin Angkatan\",\"photo_url\":null},\"attendees_count\":0,\"my_rsvp\":null,\"created_at\":\"10 Apr 2026\"}}"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Notifikasi",
+      "item": [
+        {
+          "name": "GET Semua Notifikasi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/notifications?unread=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"],
+              "query": [{ "key": "unread", "value": "1", "description": "Filter hanya yang belum dibaca" }]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"notifications\":[{\"id\":1,\"type\":\"approval\",\"title\":\"✅ Akun Disetujui\",\"data\":{\"message\":\"Akun kamu telah disetujui! Selamat bergabung di Lifeafter.\"},\"is_read\":false,\"created_at\":\"10 Apr 2026, 09:00\"}],\"unread_count\":3},\"meta\":{\"current_page\":1,\"last_page\":1,\"per_page\":20,\"total\":3}}"
+            }
+          ]
+        },
+        {
+          "name": "PUT Tandai Notifikasi Dibaca",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/notifications/1/read", "host": ["{{base_url}}"], "path": ["api", "notifications", "1", "read"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":{\"id\":1,\"type\":\"approval\",\"title\":\"✅ Akun Disetujui\",\"data\":{\"message\":\"Akun kamu telah disetujui! Selamat bergabung di Lifeafter.\"},\"is_read\":true,\"created_at\":\"10 Apr 2026, 09:00\"}}"
+            },
+            {
+              "name": "403 Forbidden",
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\"status\":\"error\",\"message\":\"Kamu tidak memiliki akses ke notifikasi ini.\"}"
+            }
+          ]
+        },
+        {
+          "name": "PUT Tandai Semua Dibaca",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/notifications/read-all", "host": ["{{base_url}}"], "path": ["api", "notifications", "read-all"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Semua notifikasi ditandai sudah dibaca.\",\"data\":{\"updated_count\":3}}"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "GET Pending Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/pending", "host": ["{{base_url}}"], "path": ["api", "admin", "pending"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"data\":[{\"id\":3,\"name\":\"Budi Santoso\",\"email\":\"budi@lifeafter.test\",\"city\":\"Surabaya\",\"job\":\"Engineer\",\"created_at\":\"08 Apr 2026, 07:30\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "POST Approve User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/1/approve", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "1", "approve"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Anggota berhasil disetujui.\",\"data\":{\"user\":{\"id\":3,\"name\":\"Budi Santoso\",\"email\":\"budi@lifeafter.test\",\"status\":\"active\"}}}"
+            },
+            {
+              "name": "422 Unprocessable",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "body": "{\"status\":\"error\",\"message\":\"User tidak dalam status pending.\"}"
+            }
+          ]
+        },
+        {
+          "name": "POST Reject User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Data tidak lengkap.\"\n}" },
+            "url": { "raw": "{{base_url}}/api/admin/users/1/reject", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "1", "reject"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Pendaftaran ditolak.\"}"
+            }
+          ]
+        },
+        {
+          "name": "DELETE Hapus User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/1", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "1"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Akun berhasil dihapus.\"}"
+            },
+            {
+              "name": "403 Forbidden (admin/self)",
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\"status\":\"error\",\"message\":\"Kamu tidak dapat menghapus akun admin lain.\"}"
+            }
+          ]
+        },
+        {
+          "name": "POST Broadcast Notifikasi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Pengumuman Penting\",\n  \"message\": \"Reuni angkatan akan diadakan bulan Mei 2026. Segera daftarkan diri!\"\n}" },
+            "url": { "raw": "{{base_url}}/api/admin/notifications/broadcast", "host": ["{{base_url}}"], "path": ["api", "admin", "notifications", "broadcast"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"status\":\"success\",\"message\":\"Notifikasi berhasil dikirim ke 48 anggota.\",\"data\":{\"sent_to\":48}}"
+            }
+          ]
+        }
+      ]
+    }
+
+  ]
+}
