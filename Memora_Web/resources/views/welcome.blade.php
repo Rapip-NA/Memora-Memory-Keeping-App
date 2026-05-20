@@ -156,9 +156,6 @@
             
             <!-- Left Content -->
             <div class="flex flex-col gap-8">
-                <div class="inline-block bg-lime/20 dark:bg-orange/20 text-lime dark:text-orange px-4 py-2 rounded-full font-bold w-fit border border-lime/50 dark:border-orange/50">
-                    Platform Sosial Eksklusif v2.0
-                </div>
                 <h1 class="text-5xl lg:text-[4rem] font-bold leading-tight tracking-tight text-dark dark:text-white">
                     Abadikan Momen,<br>
                     Rawat Kenangan<br>
