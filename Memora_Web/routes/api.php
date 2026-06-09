@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\RsvpController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ClassroomController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,9 +22,12 @@ use Illuminate\Support\Facades\Route;
 
 // ─── Auth: Public (tanpa autentikasi) ─────────────────────────────────────
 Route::prefix('auth')->name('api.auth.')->group(function () {
-    Route::post('/register', [AuthController::class, 'register'])->name('register');
-    Route::post('/login',    [AuthController::class, 'login'])->name('login');
+    Route::post('/register', [AuthController::class, 'register'])->name('register')->middleware('throttle:3,1');
+    Route::post('/login',    [AuthController::class, 'login'])->name('login')->middleware('throttle:5,1');
 });
+
+// ─── Public: Classrooms list (untuk halaman registrasi) ───────────────────
+Route::get('/classrooms', [ClassroomController::class, 'index'])->name('api.classrooms.public');
 
 // ─── Protected Routes (butuh token Sanctum + akun aktif) ──────────────────
 Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
@@ -41,16 +45,21 @@ Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
         Route::get('/{id}',        [UserController::class, 'show'])->name('show');
         Route::put('/{id}',        [UserController::class, 'update'])->name('update');
         Route::post('/{id}/photo', [UserController::class, 'uploadPhoto'])->name('uploadPhoto');
+        Route::post('/{id}/banner-photo', [UserController::class, 'uploadBannerPhoto'])->name('uploadBannerPhoto');
     });
 
     // ─── Posts ────────────────────────────────────────────────────────────
     Route::prefix('posts')->name('api.posts.')->group(function () {
+        Route::get('/bookmarks',   [PostController::class, 'bookmarks'])->name('bookmarks');
         Route::get('/',            [PostController::class, 'index'])->name('index');
         Route::post('/',           [PostController::class, 'store'])->name('store');
         Route::get('/{id}',        [PostController::class, 'show'])->name('show');
         Route::put('/{id}',        [PostController::class, 'update'])->name('update');
         Route::delete('/{id}',     [PostController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/like',  [LikeController::class, 'togglePost'])->name('like');
+        Route::post('/{id}/bookmark', [PostController::class, 'bookmark'])->name('bookmark');
+        // Poll vote — /posts/{id}/poll/{pollId}/vote
+        Route::post('/{id}/poll/{pollId}/vote', [PostController::class, 'votePoll'])->name('poll.vote');
         // Comments on post — nested under /posts/{id}/comments
         Route::get('/{id}/comments',  [CommentController::class, 'indexForPost'])->name('comments.index');
         Route::post('/{id}/comments', [CommentController::class, 'storeForPost'])->name('comments.store');
@@ -77,7 +86,9 @@ Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
     // ─── Events ─────────────────────────────────────────────────────
     Route::prefix('events')->name('api.events.')->group(function () {
         Route::get('/',                [EventController::class, 'index'])->name('index');
+        Route::post('/',               [EventController::class, 'store'])->name('store');
         Route::get('/{id}',            [EventController::class, 'show'])->name('show');
+        Route::put('/{id}',            [EventController::class, 'update'])->name('update');
         Route::get('/{id}/attendees',  [EventController::class, 'attendees'])->name('attendees');
         Route::post('/{id}/rsvp',      [RsvpController::class, 'toggle'])->name('rsvp');
     });
@@ -89,6 +100,7 @@ Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
         Route::put('/read-all',      [NotificationController::class, 'markAllAsRead'])->name('read-all');
         Route::put('/{id}/read',     [NotificationController::class, 'markAsRead'])->name('read');
     });
+
 
     // ─── Admin Routes (tambahan: check.admin) ───────────────────────────
     Route::middleware('check.admin')->prefix('admin')->name('api.admin.')->group(function () {
@@ -107,6 +119,11 @@ Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
 
         // Broadcast notification
         Route::post('/notifications/broadcast',       [AdminController::class,  'broadcastNotification'])->name('notifications.broadcast');
+
+        // Classrooms management (admin only)
+        Route::post('/classrooms',                    [ClassroomController::class,  'store'])->name('classrooms.store');
+        Route::put('/classrooms/{id}',                [ClassroomController::class,  'update'])->name('classrooms.update');
+        Route::delete('/classrooms/{id}',             [ClassroomController::class,  'destroy'])->name('classrooms.destroy');
     });
 
 });

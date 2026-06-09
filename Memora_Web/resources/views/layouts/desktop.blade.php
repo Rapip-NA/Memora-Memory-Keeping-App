@@ -64,12 +64,14 @@
             }
         });
     </script>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/Memora 1.png') }}">
 </head>
 <body>
     @php
-        $sidebarUser = auth()->user() ?? \App\Models\User::first();
-        $sidebarAvatar = $sidebarUser->avatar_url;
-        $unreadCount = \App\Models\Notification::where('user_id', auth()->id() ?? 1)->whereNull('read_at')->count();
+        $sidebarUser = auth()->user() ? auth()->user()->load('classroom') : null;
+        $sidebarAvatar = $sidebarUser ? $sidebarUser->avatar_url : asset('assets/img/default-avatar.png');
+        $unreadCount = auth()->check() ? \App\Models\Notification::where('user_id', auth()->id())->whereNull('read_at')->count() : 0;
     @endphp
     <div class="dashboard-container">
         <x-sidebar :unreadCount="$unreadCount" :sidebarUser="$sidebarUser" :sidebarAvatar="$sidebarAvatar" />
@@ -84,7 +86,7 @@
 
     <script src="{{ asset('assets/js/script.js') }}"></script>
 
-    <x-chat-panel />
+
 
     <x-compose-modal />
 
@@ -94,257 +96,11 @@
             to { transform: scale(1); opacity: 1; }
         }
 
-        /* Chat Panel Styles */
-        .chat-panel {
-            position: fixed;
-            top: 0;
-            right: -350px;
-            width: 350px;
-            height: 100vh;
-            background: var(--bg-card);
-            box-shadow: -5px 0 25px rgba(0,0,0,0.1);
-            z-index: 1050;
-            transition: right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chat-panel.open {
-            right: 0;
-        }
-        
-        .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .chat-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        .close-chat-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-        }
-        
-        .close-chat-btn:hover {
-            background: var(--bg-main);
-            color: var(--danger);
-        }
-        
-        .chat-search {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .chat-search .search-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: var(--bg-main);
-            border-radius: 20px;
-            padding: 8px 16px;
-        }
-        
-        .chat-search .search-box i {
-            color: var(--text-muted);
-            margin-right: 8px;
-        }
-        
-        .chat-search .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
-            font-family: inherit;
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-        
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-        
-        .chat-item {
-            display: flex;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: background 0.2s;
-            position: relative;
-        }
-        
-        .chat-item:hover {
-            background: var(--bg-main);
-        }
-        
-        .chat-item.unread .chat-name-time h4 {
-            font-weight: 700;
-        }
-        
-        .chat-item.unread .chat-preview {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        .chat-avatar {
-            position: relative;
-            margin-right: 12px;
-        }
-        
-        .chat-avatar img {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        
-        .status-indicator {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid var(--bg-card);
-        }
-        
-        .status-indicator.online { background: #22c55e; }
-        .status-indicator.offline { background: #94a3b8; }
-        
-        .chat-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .chat-name-time {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 4px;
-        }
-        
-        .chat-name-time h4 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text-primary);
-        }
-        
-        .chat-name-time span {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-left: 8px;
-            flex-shrink: 0;
-        }
-        
-        .chat-preview {
-            margin: 0;
-            font-size: 13px;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .unread-badge {
-            background: var(--primary);
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .chat-footer {
-            padding: 16px;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .chat-footer a {
-            color: var(--primary);
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        
-        .chat-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Overlay when chat is open */
-        .chat-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.3);
-            z-index: 1040;
-            display: none;
-            backdrop-filter: blur(2px);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .chat-overlay.show {
-            opacity: 1;
-        }
+
     </style>
 
     <script>
-        function toggleChatPanel() {
-            const panel = document.getElementById('chat-panel');
-            const overlay = document.getElementById('chat-overlay');
-            
-            if (panel.classList.contains('open')) {
-                closeChatPanel();
-            } else {
-                overlay.style.display = 'block';
-                // Trigger reflow
-                void overlay.offsetWidth;
-                panel.classList.add('open');
-                overlay.classList.add('show');
-            }
-        }
-        
-        function closeChatPanel() {
-            const panel = document.getElementById('chat-panel');
-            const overlay = document.getElementById('chat-overlay');
-            panel.classList.remove('open');
-            overlay.classList.remove('show');
-            setTimeout(() => {
-                if(!overlay.classList.contains('show')) overlay.style.display = 'none';
-            }, 300);
-        }
+
 
         // Global Modal Logic
         let globalSelectedPhotos = new DataTransfer();
@@ -793,8 +549,8 @@
             .catch(error => console.error('Error fetching notifications:', error));
         }
 
-        // Fetch new notifications every 5 seconds for a real-time feel
-        setInterval(updateNotificationBadges, 5000);
+        // Fetch new notifications every 30 seconds for a real-time feel
+        setInterval(updateNotificationBadges, 30000);
     </script>
 </body>
 </html>

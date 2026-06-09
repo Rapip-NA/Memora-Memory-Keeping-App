@@ -11,7 +11,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        $currentUser = auth()->user() ?? User::first();
+        $currentUser = auth()->user();
         $upcomingEvents = Event::with('rsvps')->whereDate('event_date', '>=', now()->toDateString())
             ->orderBy('event_date', 'asc')
             ->get();
@@ -25,7 +25,7 @@ class EventController extends Controller
     public function show($id)
     {
         $event = Event::with(['rsvps.user', 'comments.user'])->findOrFail($id);
-        $currentUser = auth()->user() ?? User::first();
+        $currentUser = auth()->user();
         
         return view('desktop.events.show', compact('event', 'currentUser'));
     }
@@ -33,7 +33,7 @@ class EventController extends Controller
     public function rsvp($id)
     {
         $event = Event::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
         
         $existing = $event->rsvps()->where('user_id', $user->id)->first();
         if ($existing) {
@@ -49,7 +49,7 @@ class EventController extends Controller
     {
         $request->validate(['body' => 'required|string']);
         $event = Event::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
         
         $event->comments()->create([
             'user_id' => $user->id,

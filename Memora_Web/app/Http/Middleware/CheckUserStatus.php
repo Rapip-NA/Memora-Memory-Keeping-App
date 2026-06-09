@@ -17,10 +17,16 @@ class CheckUserStatus
         $user = $request->user();
 
         if ($user && $user->status !== 'active') {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Akun tidak aktif atau belum disetujui',
-            ], 403);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Akun tidak aktif atau belum disetujui',
+                ], 403);
+            }
+
+            if (!$request->is('pending') && !$request->is('logout') && !$request->is('logout/*')) {
+                return redirect()->route('pending');
+            }
         }
 
         return $next($request);

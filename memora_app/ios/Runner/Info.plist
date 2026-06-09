@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Aplikasi memerlukan izin untuk menyimpan foto memori ke galeri Anda.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Aplikasi memerlukan izin untuk mengakses galeri Anda agar dapat memilih foto memori.</string>
 </dict>
 </plist>

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:memora_app/config/app_config.dart';
 import 'package:memora_app/theme/app_theme.dart';
 import 'package:memora_app/widgets/neo_widgets.dart';
 
@@ -31,7 +32,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   String? _errorMessage;
-  String _baseUrl = 'http://127.0.0.1:8001';
+  String _baseUrl = AppConfig.baseUrl;
+
+  // ── Classroom state ──
+  List<Map<String, dynamic>> _classrooms = [];
+  bool _isLoadingClassrooms = true;
+  int? _selectedClassroomId;
+  String? _classroomError;
 
   @override
   void initState() {
@@ -50,17 +57,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _loadBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      String saved = prefs.getString('backend_url') ?? 'http://127.0.0.1:8001';
-      if (saved == 'http://10.0.2.2:8000' || saved == 'http://172.18.20.187:8001') {
-        saved = 'http://127.0.0.1:8001';
-        prefs.setString('backend_url', saved);
+    String saved = prefs.getString('backend_url') ?? AppConfig.baseUrl;
+    if (!saved.startsWith('https://') && !saved.startsWith('http://memora')) {
+      saved = AppConfig.baseUrl;
+      await prefs.setString('backend_url', saved);
+    }
+    setState(() => _baseUrl = saved);
+    await _fetchClassrooms();
+  }
+
+  Future<void> _fetchClassrooms() async {
+    setState(() => _isLoadingClassrooms = true);
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/api/classrooms'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final list = data['data'] as List? ?? [];
+        setState(() {
+          _classrooms = list.map((e) => e as Map<String, dynamic>).toList();
+          _isLoadingClassrooms = false;
+        });
+      } else {
+        setState(() => _isLoadingClassrooms = false);
       }
-      _baseUrl = saved;
-    });
+    } catch (_) {
+      setState(() => _isLoadingClassrooms = false);
+    }
   }
 
   Future<void> _handleRegister() async {
+    // Validate classroom selection separately (not in Form)
+    if (_selectedClassroomId == null) {
+      setState(() => _classroomError = 'Kelas wajib dipilih');
+      return;
+    } else {
+      setState(() => _classroomError = null);
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -68,84 +107,83 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _errorMessage = null;
     });
 
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    final passwordConfirmation = _confirmPasswordController.text;
-
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/auth/register'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'name': name,
-          'email': email,
-          'password': password,
-          'password_confirmation': passwordConfirmation,
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/auth/register'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'name': _nameController.text.trim(),
+              'email': _emailController.text.trim(),
+              'password': _passwordController.text,
+              'password_confirmation': _confirmPasswordController.text,
+              'classroom_id': _selectedClassroomId,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 201 && data['status'] == 'success') {
         if (mounted) {
-          // Show Neobrutalist Success Dialog
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: widget.isDark ? AppColors.cardDark : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: const BorderSide(color: AppColors.dark, width: 2),
+            builder: (ctx) => AlertDialog(
+              backgroundColor:
+                  widget.isDark ? AppColors.cardDark : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: AppColors.dark, width: 2),
+              ),
+              title: Text(
+                '🎉 Pendaftaran Berhasil',
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w800,
+                  color: widget.isDark ? Colors.white : AppColors.dark,
                 ),
-                title: Text(
-                  '🎉 Pendaftaran Berhasil',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.w800,
-                    color: widget.isDark ? Colors.white : AppColors.dark,
-                  ),
+              ),
+              content: Text(
+                data['message'] ??
+                    'Akun Anda berhasil didaftarkan. Harap tunggu persetujuan dari admin sebelum Anda dapat masuk.',
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w500,
+                  color: widget.isDark
+                      ? Colors.grey.shade300
+                      : Colors.grey.shade700,
                 ),
-                content: Text(
-                  data['message'] ?? 'Akun Anda berhasil didaftarkan. Harap tunggu persetujuan dari admin sebelum Anda dapat masuk.',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.w500,
-                    color: widget.isDark ? Colors.grey.shade300 : Colors.grey.shade700,
-                  ),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: NeoButton(
-                      isDark: widget.isDark,
-                      backgroundColor: widget.isDark ? AppColors.orange : AppColors.lime,
-                      textColor: AppColors.dark,
-                      onTap: () {
-                        Navigator.of(context).pop(); // pop dialog
-                        Navigator.of(context).pop(); // go back to login screen
-                      },
-                      child: Center(
-                        child: Text(
-                          'Siap, Kembali ke Login',
-                          style: GoogleFonts.spaceGrotesk(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.dark,
-                          ),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: NeoButton(
+                    isDark: widget.isDark,
+                    backgroundColor:
+                        widget.isDark ? AppColors.orange : AppColors.lime,
+                    textColor: AppColors.dark,
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      Navigator.of(context).pop();
+                    },
+                    child: Center(
+                      child: Text(
+                        'Siap, Kembali ke Login',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.dark,
                         ),
                       ),
                     ),
                   ),
-                ],
-              );
-            },
+                ),
+              ],
+            ),
           );
         }
       } else {
-        // Handle validation or other error responses from Laravel
         String errMsg = data['message'] ?? 'Pendaftaran gagal.';
         if (data['errors'] != null && data['errors'] is Map) {
           final Map errors = data['errors'];
@@ -154,20 +192,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             errMsg = firstErrorList.first.toString();
           }
         }
-        setState(() {
-          _errorMessage = errMsg;
-        });
+        setState(() => _errorMessage = errMsg);
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Tidak dapat terhubung ke server Laravel.\nPeriksa koneksi jaringan Anda.';
+        _errorMessage =
+            'Tidak dapat terhubung ke server.\nPeriksa koneksi internet Anda dan coba lagi.';
       });
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -187,24 +220,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           icon: Icon(Icons.arrow_back_rounded, color: textColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              widget.isDark ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
-              color: textColor,
-            ),
-            onPressed: widget.onToggleTheme,
-          ),
-          const SizedBox(width: 8),
-        ],
+
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Logo / Icon header
+              // ── Logo / Header ──────────────────────────────────────
               Center(
                 child: Column(
                   children: [
@@ -216,7 +241,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         decoration: BoxDecoration(
                           color: accentColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.dark, width: 2),
+                          border:
+                              Border.all(color: AppColors.dark, width: 2),
                           boxShadow: const [
                             BoxShadow(
                               color: AppColors.dark,
@@ -247,7 +273,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: widget.isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: widget.isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -256,18 +284,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               const SizedBox(height: 32),
 
-              // Error Neobrutalist Alert Banner
+              // ── Error Banner ───────────────────────────────────────
               if (_errorMessage != null) ...[
                 NeoBox(
                   isDark: widget.isDark,
-                  backgroundColor: const Color(0xFFFEE2E2), // soft red
+                  backgroundColor: const Color(0xFFFEE2E2),
                   borderRadius: 16,
                   borderWidth: 2,
                   shadowOffset: 4,
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 24),
+                      const Icon(Icons.error_outline_rounded,
+                          color: Colors.redAccent, size: 24),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -285,53 +314,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // Form Register Card
+              // ── Form Card ─────────────────────────────────────────
               NeoBox(
                 isDark: widget.isDark,
                 backgroundColor: cardBg,
                 borderRadius: 24,
                 borderWidth: 2,
                 shadowOffset: 8,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Name Field
-                      Text(
-                        'Nama Lengkap',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: textColor,
-                        ),
-                      ),
+                      // ── Nama ──────────────────────────────────
+                      _fieldLabel('Nama Lengkap', textColor),
                       const SizedBox(height: 8),
                       _buildTextField(
                         controller: _nameController,
                         hintText: 'Budi Santoso',
                         icon: Icons.person_outline_rounded,
                         isDark: widget.isDark,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Nama tidak boleh kosong';
-                          }
-                          return null;
-                        },
+                        validator: (v) =>
+                            (v == null || v.isEmpty) ? 'Nama tidak boleh kosong' : null,
                       ),
 
                       const SizedBox(height: 20),
 
-                      // Email Field
-                      Text(
-                        'Email',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: textColor,
-                        ),
-                      ),
+                      // ── Email ─────────────────────────────────
+                      _fieldLabel('Email', textColor),
                       const SizedBox(height: 8),
                       _buildTextField(
                         controller: _emailController,
@@ -339,11 +351,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         icon: Icons.mail_outline_rounded,
                         keyboardType: TextInputType.emailAddress,
                         isDark: widget.isDark,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
                             return 'Email tidak boleh kosong';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(v)) {
                             return 'Format email tidak valid';
                           }
                           return null;
@@ -352,15 +365,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       const SizedBox(height: 20),
 
-                      // Password Field
-                      Text(
-                        'Kata Sandi',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: textColor,
-                        ),
-                      ),
+                      // ── Kata Sandi ────────────────────────────
+                      _fieldLabel('Kata Sandi', textColor),
                       const SizedBox(height: 8),
                       _buildTextField(
                         controller: _passwordController,
@@ -370,20 +376,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         isDark: widget.isDark,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            color: _obscurePassword ? Colors.grey : accentColor,
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: _obscurePassword
+                                ? Colors.grey
+                                : accentColor,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
                             return 'Kata sandi tidak boleh kosong';
                           }
-                          if (value.length < 8) {
+                          if (v.length < 8) {
                             return 'Kata sandi minimal 8 karakter';
                           }
                           return null;
@@ -392,15 +399,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       const SizedBox(height: 20),
 
-                      // Confirm Password Field
-                      Text(
-                        'Konfirmasi Sandi',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: textColor,
-                        ),
-                      ),
+                      // ── Konfirmasi Sandi ──────────────────────
+                      _fieldLabel('Konfirmasi Sandi', textColor),
                       const SizedBox(height: 8),
                       _buildTextField(
                         controller: _confirmPasswordController,
@@ -410,35 +410,108 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         isDark: widget.isDark,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            color: _obscureConfirmPassword ? Colors.grey : accentColor,
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: _obscureConfirmPassword
+                                ? Colors.grey
+                                : accentColor,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
-                            });
-                          },
+                          onPressed: () => setState(() =>
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
                             return 'Konfirmasi kata sandi tidak boleh kosong';
                           }
-                          if (value != _passwordController.text) {
+                          if (v != _passwordController.text) {
                             return 'Konfirmasi kata sandi tidak cocok';
                           }
                           return null;
                         },
                       ),
 
+                      const SizedBox(height: 24),
+
+                      // ── Pilih Kelas ───────────────────────────
+                      Row(
+                        children: [
+                          Text(
+                            'Pilih Kelas',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Wajib',
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Pilih kelas atau angkatan Anda',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: widget.isDark
+                              ? Colors.grey.shade500
+                              : Colors.grey.shade500,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Classroom picker area
+                      _buildClassroomPicker(accentColor, textColor, cardBg),
+
+                      // Error text for classroom
+                      if (_classroomError != null) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.error_outline,
+                                color: Colors.redAccent, size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              _classroomError!,
+                              style: GoogleFonts.spaceGrotesk(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+
                       const SizedBox(height: 32),
 
-                      // Register Button
+                      // ── Daftar Button ─────────────────────────
                       NeoButton(
                         isDark: widget.isDark,
-                        backgroundColor: _isLoading ? Colors.grey.shade300 : AppColors.dark,
+                        backgroundColor: _isLoading
+                            ? Colors.grey.shade300
+                            : AppColors.dark,
                         textColor: Colors.white,
                         onTap: _isLoading ? null : _handleRegister,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 18),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -448,13 +521,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
                                 ),
                               ),
                               const SizedBox(width: 12),
                             ],
                             Text(
-                              _isLoading ? 'Sedang Mendaftar...' : 'Daftar Sekarang',
+                              _isLoading
+                                  ? 'Sedang Mendaftar...'
+                                  : 'Daftar Sekarang',
                               style: GoogleFonts.spaceGrotesk(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
@@ -463,7 +540,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             if (!_isLoading) ...[
                               const SizedBox(width: 8),
-                              const Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 20),
+                              const Icon(Icons.rocket_launch_rounded,
+                                  color: Colors.white, size: 20),
                             ],
                           ],
                         ),
@@ -475,7 +553,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               const SizedBox(height: 24),
 
-              // Bottom login redirect
+              // ── Login redirect ─────────────────────────────────────
               Center(
                 child: Wrap(
                   alignment: WrapAlignment.center,
@@ -486,7 +564,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: widget.isDark ? Colors.grey.shade400 : Colors.grey.shade500,
+                        color: widget.isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade500,
                       ),
                     ),
                     GestureDetector(
@@ -513,6 +593,169 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
+
+  // ── Classroom Picker ──────────────────────────────────────────────────────
+  Widget _buildClassroomPicker(
+      Color accentColor, Color textColor, Color cardBg) {
+    if (_isLoadingClassrooms) {
+      return Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: widget.isDark ? const Color(0xFF282932) : AppColors.light,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: widget.isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          ),
+        ),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: accentColor,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Memuat daftar kelas...',
+                style: GoogleFonts.spaceGrotesk(
+                  color: widget.isDark
+                      ? Colors.grey.shade500
+                      : Colors.grey.shade500,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_classrooms.isEmpty) {
+      return GestureDetector(
+        onTap: _fetchClassrooms,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: widget.isDark ? const Color(0xFF282932) : AppColors.light,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded,
+                  color: Colors.orange, size: 18),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Gagal memuat kelas. Tap untuk coba lagi.',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const Icon(Icons.refresh_rounded, color: Colors.orange, size: 18),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show classrooms as a scrollable pill list
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _classrooms.map((cls) {
+        final id = (cls['id'] as num?)?.toInt();
+        final name = cls['name'] as String? ?? 'Kelas';
+        final isSelected = _selectedClassroomId != null && _selectedClassroomId == id;
+
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            setState(() {
+              _selectedClassroomId = id;
+              _classroomError = null;
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? accentColor
+                  : (widget.isDark
+                      ? const Color(0xFF282932)
+                      : Colors.grey.shade100),
+              borderRadius: BorderRadius.circular(99),
+              border: Border.all(
+                color: isSelected
+                    ? accentColor
+                    : (widget.isDark
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade300),
+                width: isSelected ? 2 : 1.5,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: accentColor.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      )
+                    ]
+                  : [],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSelected) ...[
+                  const Icon(Icons.check_circle_rounded,
+                      color: AppColors.dark, size: 15),
+                  const SizedBox(width: 6),
+                ] else ...[
+                  Icon(Icons.school_rounded,
+                      color: widget.isDark
+                          ? Colors.grey.shade500
+                          : Colors.grey.shade500,
+                      size: 15),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  name,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected
+                        ? AppColors.dark
+                        : (widget.isDark
+                            ? Colors.grey.shade300
+                            : Colors.grey.shade700),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ── Helper Widgets ─────────────────────────────────────────────────────────
+  Widget _fieldLabel(String label, Color textColor) => Text(
+        label,
+        style: GoogleFonts.spaceGrotesk(
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
+          color: textColor,
+        ),
+      );
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -545,7 +788,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: isDark ? const Color(0xFF282932) : AppColors.light,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: borderColor, width: 2),

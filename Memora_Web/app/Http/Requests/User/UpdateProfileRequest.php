@@ -34,6 +34,7 @@ class UpdateProfileRequest extends FormRequest
             'lng'            => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
             'social_links'   => ['sometimes', 'nullable', 'array'],
             'social_links.*' => ['nullable', 'url'],
+            'classroom_id'   => ['sometimes', 'nullable', 'exists:classrooms,id'],
         ];
     }
 
@@ -76,6 +77,7 @@ class UpdateProfileRequest extends FormRequest
 
             'social_links.array'   => 'Social links harus berupa array.',
             'social_links.*.url'   => 'Setiap social link harus berupa URL yang valid.',
+            'classroom_id.exists'  => 'Kelas yang dipilih tidak valid.',
         ];
     }
 }

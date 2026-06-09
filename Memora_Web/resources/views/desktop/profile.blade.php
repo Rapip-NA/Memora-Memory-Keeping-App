@@ -26,7 +26,9 @@
                     
                     <div style="margin-bottom: 10px; display: flex; gap: 8px;">
                         <button id="theme-toggle-btn" onclick="toggleTheme()" style="background: var(--bg-card); color: var(--text-dark); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s;"><i class='bx bx-moon'></i></button>
+                        @if($isOwnProfile)
                         <button onclick="toggleEditProfileModal()" style="background: var(--bg-card); color: var(--text-dark); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-main)'" onmouseout="this.style.backgroundColor='var(--bg-card)'">Edit profile</button>
+                        @endif
                     </div>
                 </div>
                 
@@ -74,7 +76,7 @@
         @endif
 
         <div class="section-header">
-            <h3>Posting Saya</h3>
+            <h3>{{ $isOwnProfile ? 'Posting Saya' : 'Postingan ' . $currentUser->name }}</h3>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; margin-top: 16px;">
@@ -83,13 +85,14 @@
             @empty
             <div style="grid-column: 1 / -1; text-align: center; padding: 48px; background: var(--bg-card); border-radius: 16px;">
                 <i class='bx bx-message-square-x' style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
-                <p style="color: var(--text-muted);">Kamu belum membuat postingan apapun.</p>
+                <p style="color: var(--text-muted);">{{ $isOwnProfile ? 'Kamu belum membuat postingan apapun.' : $currentUser->name . ' belum membuat postingan apapun.' }}</p>
             </div>
             @endforelse
         </div>
     </div>
 </div>
 
+@if($isOwnProfile)
 <!-- Edit Profile Modal -->
 <div id="edit-profile-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s ease;">
     <div id="edit-profile-modal-content" style="background: var(--bg-card); border-radius: 16px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; display: flex; flex-direction: column; transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
@@ -150,6 +153,7 @@
         </form>
     </div>
 </div>
+@endif
 
 <script>
     function toggleEditProfileModal() {

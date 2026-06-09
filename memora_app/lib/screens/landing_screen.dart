@@ -125,19 +125,7 @@ class _LandingScreenState extends State<LandingScreen>
                 const SizedBox(width: 16),
               ] else
                 const Spacer(),
-              // Theme toggle
-              GestureDetector(
-                onTap: widget.onToggleTheme,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Icon(
-                    widget.isDark ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
-                    key: ValueKey(widget.isDark),
-                    color: textColor,
-                    size: 24,
-                  ),
-                ),
-              ),
+
               if (MediaQuery.of(context).size.width > 400) ...[
                 const SizedBox(width: 20),
                 NeoButton(

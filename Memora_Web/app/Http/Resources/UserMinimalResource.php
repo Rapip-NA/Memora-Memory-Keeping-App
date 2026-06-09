@@ -24,6 +24,8 @@ class UserMinimalResource extends JsonResource
             'job'      => $this->job,
             'company'  => $this->company,
             'photo_url' => $this->photo ? Storage::url($this->photo) : null,
+            'classroom_id' => $this->classroom_id,
+            'classroom_name' => $this->classroom?->name,
             'lat'      => $this->lat,
             'lng'      => $this->lng,
         ];

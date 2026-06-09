@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>The Archive - memora</title>
+    <meta name="description" content="The Archive adalah platform sosial eksklusif untuk komunitas Anda. Bagikan cerita, simpan foto, rencanakan acara, dan tetap terhubung selamanya.">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=space-grotesk:300,400,500,600,700&display=swap" rel="stylesheet" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -51,31 +52,18 @@
             border-radius: 40px;
             transition: all 0.3s ease;
         }
-        
         .dark .service-card {
-            border: 2px solid #ffffff;
+            border-color: #ffffff;
             box-shadow: 0 8px 0 0 #EA580C;
         }
-
         .service-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 0 0 #191A23;
         }
-        
         .dark .service-card:hover {
             box-shadow: 0 12px 0 0 #EA580C;
         }
 
-        /* Float Animations */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-        .animate-float {
-            animation: float 5s ease-in-out infinite;
-        }
-        
-        /* Neobrutalism UI Classes */
         .neo-btn {
             border: 2px solid #191A23;
             box-shadow: 0 6px 0 0 #191A23;
@@ -89,28 +77,30 @@
             transform: translateY(4px);
             box-shadow: 0 0 0 0 #191A23;
         }
-        
         .dark .neo-btn {
-            border: 2px solid #ffffff;
+            border-color: #ffffff;
             box-shadow: 0 6px 0 0 #EA580C;
         }
-        .dark .neo-btn:hover {
-            box-shadow: 0 8px 0 0 #EA580C;
-        }
-        .dark .neo-btn:active {
-            box-shadow: 0 0 0 0 #EA580C;
-        }
+        .dark .neo-btn:hover { box-shadow: 0 8px 0 0 #EA580C; }
+        .dark .neo-btn:active { box-shadow: 0 0 0 0 #EA580C; }
 
         .neo-box {
             border: 2px solid #191A23;
             box-shadow: 0 8px 0 0 #191A23;
         }
-        
         .dark .neo-box {
-            border: 2px solid #ffffff;
+            border-color: #ffffff;
             box-shadow: 0 8px 0 0 #EA580C;
         }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .animate-float { animation: float 5s ease-in-out infinite; }
     </style>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/Memora 1.png') }}">
 </head>
 <body class="antialiased bg-white text-dark dark:bg-darkBg dark:text-white selection:bg-lime dark:selection:bg-orange selection:text-white">
 
@@ -178,6 +168,9 @@
                     @endauth
                     <a href="#fitur" class="neo-btn bg-white dark:bg-darkBg text-dark dark:text-white text-center px-8 py-4 rounded-xl text-lg font-bold">
                         Jelajahi Fitur
+                    </a>
+                    <a href="{{ asset('downloads/memora-latest.apk') }}" download="Memora-v1.1.1.apk" class="neo-btn bg-white dark:bg-darkBg text-dark dark:text-white text-center px-8 py-4 rounded-xl text-lg font-bold">
+                        Unduh APK
                     </a>
                 </div>
             </div>

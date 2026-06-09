@@ -161,11 +161,11 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'photo' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:2048',
         ], [
             'photo.required' => 'File foto wajib diunggah.',
             'photo.image'    => 'File harus berupa gambar.',
-            'photo.mimes'    => 'Format foto harus JPG atau PNG.',
+            'photo.mimes'    => 'Format foto harus JPG, PNG, WEBP, atau HEIC/HEIF.',
             'photo.max'      => 'Ukuran foto maksimal 2MB.',
         ]);
 
@@ -185,6 +185,60 @@ class UserController extends Controller
             'message' => 'Foto profil berhasil diunggah',
             'data'    => [
                 'photo_url' => Storage::url($path),
+            ],
+        ]);
+    }
+
+    /**
+     * Upload foto banner — hanya boleh upload foto banner SENDIRI.
+     * POST /api/users/{id}/banner-photo
+     */
+    public function uploadBannerPhoto(Request $request, int $id): JsonResponse
+    {
+        // Otorisasi: hanya bisa upload foto banner sendiri
+        if ($request->user()->id !== $id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Kamu tidak memiliki izin untuk mengubah foto banner ini',
+            ], 403);
+        }
+
+        $user = User::where('id', $id)
+            ->where('status', 'active')
+            ->first();
+
+        if (! $user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Anggota tidak ditemukan',
+            ], 404);
+        }
+
+        $request->validate([
+            'banner_photo' => 'required|image|mimes:jpg,jpeg,png,webp,heic,heif|max:4096',
+        ], [
+            'banner_photo.required' => 'File foto banner wajib diunggah.',
+            'banner_photo.image'    => 'File harus berupa gambar.',
+            'banner_photo.mimes'    => 'Format foto banner harus JPG, PNG, WEBP, atau HEIC/HEIF.',
+            'banner_photo.max'      => 'Ukuran foto banner maksimal 4MB.',
+        ]);
+
+        // Hapus foto banner lama jika ada
+        if ($user->banner_photo && Storage::disk('public')->exists($user->banner_photo)) {
+            Storage::disk('public')->delete($user->banner_photo);
+        }
+
+        // Simpan foto banner baru dengan nama unik
+        $filename  = uniqid('banner_') . '.' . $request->file('banner_photo')->getClientOriginalExtension();
+        $path      = $request->file('banner_photo')->storeAs('photos/profile/banners', $filename, 'public');
+
+        $user->update(['banner_photo' => $path]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Foto banner berhasil diunggah',
+            'data'    => [
+                'banner_url' => Storage::url($path),
             ],
         ]);
     }

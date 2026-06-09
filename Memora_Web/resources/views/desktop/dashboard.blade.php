@@ -316,7 +316,7 @@
 
         // --- Real-time Data Fetching ---
         function fetchDashboardData() {
-            fetch('{{ route("desktop.dashboard.data") }}', {
+            fetch('{{ route("admin.dashboard.data") }}', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'

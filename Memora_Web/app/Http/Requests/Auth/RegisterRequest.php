@@ -22,9 +22,10 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'name'         => ['required', 'string', 'max:255'],
+            'email'        => ['required', 'email', 'unique:users,email'],
+            'password'     => ['required', 'string', 'min:8', 'confirmed'],
+            'classroom_id' => ['required', 'exists:classrooms,id'],
         ];
     }
 
@@ -48,6 +49,9 @@ class RegisterRequest extends FormRequest
             'password.string'    => 'Password harus berupa teks.',
             'password.min'       => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
+
+            'classroom_id.required' => 'Kelas wajib dipilih.',
+            'classroom_id.exists'   => 'Kelas yang dipilih tidak valid.',
         ];
     }
 }

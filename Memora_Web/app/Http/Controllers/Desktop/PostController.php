@@ -18,7 +18,7 @@ class PostController extends Controller
     public function feed(Request $request)
     {
         $posts = Post::with(['user', 'comments.user', 'likes', 'bookmarks', 'poll.options', 'poll.votes'])->latest()->paginate(10);
-        $currentUser = auth()->user() ?? User::first();
+        $currentUser = auth()->user();
 
         if ($request->ajax()) {
             $view = view('desktop.partials.post-list', compact('posts', 'currentUser'))->render();
@@ -26,6 +26,13 @@ class PostController extends Controller
         }
         
         return view('desktop.feed', compact('posts', 'currentUser'));
+    }
+
+    public function show($id)
+    {
+        $post = Post::with(['user', 'comments.user', 'likes', 'bookmarks', 'poll.options', 'poll.votes'])->findOrFail($id);
+        $currentUser = auth()->user();
+        return view('desktop.post-show', compact('post', 'currentUser'));
     }
 
     public function store(Request $request)
@@ -40,14 +47,7 @@ class PostController extends Controller
             'event_location' => 'nullable|string'
         ]);
 
-        $user = auth()->user() ?? User::first();
-        if (!$user) {
-            $user = User::create([
-                'name' => 'Demo User',
-                'email' => 'demo' . time() . '@example.com',
-                'password' => bcrypt('password'),
-            ]);
-        }
+        $user = auth()->user();
 
         $mediaPaths = [];
         $hasFiles = false;
@@ -156,7 +156,7 @@ class PostController extends Controller
     public function like($id)
     {
         $post = Post::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
 
         $existingLike = $post->likes()->where('user_id', $user->id)->first();
 
@@ -190,7 +190,7 @@ class PostController extends Controller
         $request->validate(['option_id' => 'required|exists:poll_options,id']);
         
         $poll = \App\Models\Poll::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
         
         if ($poll->is_expired) {
             return response()->json(['error' => 'Polling sudah berakhir.'], 403);
@@ -234,7 +234,7 @@ class PostController extends Controller
     {
         $request->validate(['body' => 'required|string']);
         $post = Post::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
 
         $post->comments()->create([
             'user_id' => $user->id,
@@ -260,7 +260,7 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         $post = Post::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
 
         if ($post->user_id !== $user->id) {
             abort(403, 'Unauthorized action.');
@@ -275,7 +275,7 @@ class PostController extends Controller
     public function destroy($id)
     {
         $post = Post::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
 
         if ($post->user_id !== $user->id) {
             abort(403, 'Unauthorized action.');
@@ -299,7 +299,7 @@ class PostController extends Controller
     public function bookmark($id)
     {
         $post = Post::findOrFail($id);
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
 
         $existingBookmark = Bookmark::where('user_id', $user->id)->where('post_id', $post->id)->first();
 

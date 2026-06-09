@@ -45,7 +45,7 @@ class _MemoraAppState extends State<MemoraApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'The Archive – Memora',
+      title: 'Memora',
       debugShowCheckedModeBanner: false,
       themeMode: _isDark ? ThemeMode.dark : ThemeMode.light,
       theme: AppTheme.lightTheme,

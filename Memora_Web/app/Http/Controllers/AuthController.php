@@ -19,6 +19,10 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
         if (Auth::attempt($credentials)) {
@@ -28,32 +32,40 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'email' => 'Email atau kata sandi yang kamu masukkan salah.',
         ])->onlyInput('email');
     }
 
     public function showRegisterForm()
     {
-        return view('auth.register');
+        $classrooms = \App\Models\Classroom::orderBy('name')->get();
+        return view('auth.register', compact('classrooms'));
     }
 
     public function register(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'name'         => ['required', 'string', 'max:255'],
+            'email'        => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'     => ['required', 'string', 'min:8', 'confirmed'],
+            'classroom_id' => ['required', 'exists:classrooms,id'],
+        ], [
+            'classroom_id.required' => 'Kelas wajib dipilih.',
+            'classroom_id.exists'   => 'Kelas yang dipilih tidak valid.',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'         => $request->name,
+            'email'        => $request->email,
+            'password'     => Hash::make($request->password),
+            'role'         => 'member',
+            'status'       => 'pending',
+            'classroom_id' => $request->classroom_id,
         ]);
 
         Auth::login($user);
 
-        return redirect('/desktop/feed');
+        return redirect('/pending');
     }
 
     public function logout(Request $request)

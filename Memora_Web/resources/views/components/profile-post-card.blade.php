@@ -15,6 +15,7 @@
             </div>
         </div>
         <!-- Actions Dropdown or Buttons -->
+        @if($post->user_id === auth()->id())
         <div class="post-management" style="display: flex; gap: 8px;">
             <button onclick="editPost({{ $post->id }})" style="background: none; border: none; color: var(--primary); cursor: pointer;"><i class='bx bx-edit' style="font-size: 20px;"></i></button>
             <form action="{{ route('desktop.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus post ini?');" style="margin:0;">
@@ -23,6 +24,7 @@
                 <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;"><i class='bx bx-trash' style="font-size: 20px;"></i></button>
             </form>
         </div>
+        @endif
     </div>
 
     <!-- Display Mode -->
@@ -73,6 +75,7 @@
         @endif
     </div>
 
+    @if($post->user_id === auth()->id())
     <!-- Edit Form Mode (Hidden initially) -->
     <div class="post-edit-form" id="post-edit-{{ $post->id }}" style="display: none; margin-top: 12px;">
         <form action="{{ route('desktop.post.update', $post->id) }}" method="POST">
@@ -85,6 +88,7 @@
             </div>
         </form>
     </div>
+    @endif
 
     <div class="post-actions" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
         <button class="action-btn"><i class='bx bx-heart'></i> {{ $post->likes_count ?? 0 }}</button>

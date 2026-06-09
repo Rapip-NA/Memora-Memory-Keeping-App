@@ -40,7 +40,7 @@ class EventController extends Controller
         $request->validate([
             'title'       => 'required|string|max:255',
             'description' => 'required|string',
-            'event_date'  => 'required|date|after:now',
+            'event_date'  => 'required|date|after_or_equal:today',
             'location'    => 'nullable|string|max:255',
         ], [
             'title.required'       => 'Judul event tidak boleh kosong.',
@@ -48,7 +48,7 @@ class EventController extends Controller
             'description.required' => 'Deskripsi event tidak boleh kosong.',
             'event_date.required'  => 'Tanggal event tidak boleh kosong.',
             'event_date.date'      => 'Format tanggal event tidak valid.',
-            'event_date.after'     => 'Tanggal event harus setelah sekarang.',
+            'event_date.after_or_equal' => 'Tanggal event tidak boleh di masa lalu.',
             'location.max'         => 'Lokasi tidak boleh lebih dari 255 karakter.',
         ]);
 
@@ -96,6 +96,14 @@ class EventController extends Controller
                 'status'  => 'error',
                 'message' => 'Event tidak ditemukan.',
             ], 404);
+        }
+
+        // Authorization check: only admin or the creator can edit
+        if ($request->user()?->role !== 'admin' && $event->created_by !== $request->user()?->id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak. Anda tidak memiliki akses untuk mengubah event ini.',
+            ], 403);
         }
 
         $request->validate([

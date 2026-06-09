@@ -23,7 +23,7 @@ class UpdatePostRequest extends FormRequest
     {
         return [
             'content'  => 'sometimes|string|max:2000',
-            'photo'    => 'sometimes|nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo'    => 'sometimes|nullable|file|mimes:jpg,jpeg,png,mp4,mov,avi,webm,mkv,3gp|max:102400',
             'category' => 'sometimes|in:karier,pendidikan,keluarga,perjalanan,lainnya',
         ];
     }
@@ -39,9 +39,9 @@ class UpdatePostRequest extends FormRequest
             'content.string'   => 'Konten post harus berupa teks.',
             'content.max'      => 'Konten post tidak boleh lebih dari 2000 karakter.',
 
-            'photo.image'      => 'File yang diunggah harus berupa gambar.',
-            'photo.mimes'      => 'Format foto harus jpg, jpeg, atau png.',
-            'photo.max'        => 'Ukuran foto tidak boleh lebih dari 2 MB.',
+            'photo.file'       => 'Unggahan harus berupa file.',
+            'photo.mimes'      => 'Format file harus gambar (jpg, jpeg, png) atau video (mp4, mov, avi, webm, mkv, 3gp).',
+            'photo.max'        => 'Ukuran file tidak boleh lebih dari 100 MB.',
 
             'category.in'      => 'Kategori tidak valid. Pilih salah satu: karier, pendidikan, keluarga, perjalanan, lainnya.',
         ];

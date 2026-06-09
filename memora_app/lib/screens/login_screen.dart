@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:memora_app/config/app_config.dart';
 import 'package:memora_app/theme/app_theme.dart';
 import 'package:memora_app/widgets/neo_widgets.dart';
 import 'package:memora_app/screens/feed_screen.dart';
@@ -32,11 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Base URL configuration for Laravel backend
-  // 10.0.2.2 is the localhost gateway for Android Emulator
-  // localhost/127.0.0.1 works for iOS Simulator or real devices on same network
-  String _baseUrl = 'http://127.0.0.1:8001'; 
-  final _baseUrlController = TextEditingController(text: 'http://127.0.0.1:8001');
+  // Base URL — default ke URL production yang sudah di-deploy
+  // Bisa di-override melalui panel Pengaturan ⚙️ jika diperlukan
+  String _baseUrl = AppConfig.baseUrl;
+  final _baseUrlController = TextEditingController(text: AppConfig.baseUrl);
   bool _showSettings = false;
 
   @override
@@ -55,22 +55,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loadSavedSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    String saved = prefs.getString('backend_url') ?? AppConfig.baseUrl;
+    // Migrasi: reset URL lama (localhost/IP lokal) ke URL production
+    if (!saved.startsWith('https://') && !saved.startsWith('http://memora')) {
+      saved = AppConfig.baseUrl;
+      await prefs.setString('backend_url', saved);
+    }
     setState(() {
-      String saved = prefs.getString('backend_url') ?? 'http://127.0.0.1:8001';
-      if (saved == 'http://10.0.2.2:8000' || saved == 'http://172.18.20.187:8001') {
-        saved = 'http://127.0.0.1:8001';
-        prefs.setString('backend_url', saved);
-      }
       _baseUrl = saved;
       _baseUrlController.text = _baseUrl;
       _emailController.text = prefs.getString('saved_email') ?? '';
       _rememberMe = _emailController.text.isNotEmpty;
     });
 
-    // Optional: Auto login if token exists and is valid
+    // Auto-login jika token masih ada
     final token = prefs.getString('auth_token');
     if (token != null) {
-      // Direct navigation if they are already logged in
       _navigateToFeed();
     }
   }
@@ -141,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Tidak dapat terhubung ke server Laravel.\nPeriksa koneksi jaringan Anda atau sesuaikan URL server di ikon Pengaturan ⚙️.';
+        _errorMessage = 'Tidak dapat terhubung ke server.\nPeriksa koneksi internet Anda dan coba lagi.';
       });
     } finally {
       if (mounted) {
@@ -165,14 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          // Theme toggler
-          IconButton(
-            icon: Icon(
-              widget.isDark ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
-              color: textColor,
-            ),
-            onPressed: widget.onToggleTheme,
-          ),
+
           // Backend URL Configurer
           IconButton(
             icon: Icon(
@@ -547,7 +540,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sesuaikan URL server lokal Laravel Anda agar Flutter dapat berkomunikasi.',
+            'URL production: ${AppConfig.baseUrl}\nUbah hanya jika diarahkan oleh tim pengembang.',
             style: GoogleFonts.spaceGrotesk(
               fontSize: 11,
               color: widget.isDark ? Colors.grey.shade400 : Colors.grey.shade600,

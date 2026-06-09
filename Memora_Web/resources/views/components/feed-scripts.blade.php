@@ -69,6 +69,8 @@
     function toggleEmojiPicker() {
         if(emojiPicker.style.display === 'none') {
             emojiPicker.style.display = 'grid';
+            document.getElementById('event-input-container').style.display = 'none';
+            removePoll();
         } else {
             emojiPicker.style.display = 'none';
         }
@@ -82,6 +84,8 @@
         const container = document.getElementById('event-input-container');
         if (container.style.display === 'none') {
             container.style.display = 'block';
+            emojiPicker.style.display = 'none';
+            removePoll();
             
             // Initialize map if not yet initialized
             if (!mapInitialized) {
@@ -182,6 +186,8 @@
         const container = document.getElementById('poll-input-container');
         if (container.style.display === 'none') {
             container.style.display = 'block';
+            emojiPicker.style.display = 'none';
+            document.getElementById('event-input-container').style.display = 'none';
             validatePostInput();
         } else {
             removePoll();
@@ -436,11 +442,11 @@
     }
 
     function sharePost(postId) {
-        const url = window.location.origin + `/desktop/feed`; // Since we don't have individual post page yet
+        const url = window.location.origin + `/desktop/post/${postId}`;
         navigator.clipboard.writeText(url).then(() => {
             Swal.fire({
                 title: 'Berhasil!',
-                text: 'Link feed berhasil disalin!',
+                text: 'Link postingan berhasil disalin!',
                 icon: 'success',
                 toast: true,
                 position: 'bottom-end',

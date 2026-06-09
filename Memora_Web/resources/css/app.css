@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Base Styles & Variables */
 @import './base/variables.css';
 
@@ -23,4 +25,11 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Welcome page (neobrutalism) color tokens */
+    --color-lime: #84CC16;
+    --color-dark: #191A23;
+    --color-light: #F3F3F3;
+    --color-orange: #EA580C;
+    --color-darkBg: #050505;
 }

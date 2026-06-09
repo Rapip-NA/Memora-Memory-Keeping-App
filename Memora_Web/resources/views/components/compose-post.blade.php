@@ -1,9 +1,9 @@
 @props(['currentUser'])
-<form id="compose-post-form" action="{{ route('desktop.post.store') }}" method="POST" enctype="multipart/form-data" class="twitter-compose-box" style="margin-bottom: 24px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+<form id="compose-post-form" action="{{ route('desktop.post.store') }}" method="POST" enctype="multipart/form-data" class="twitter-compose-box" style="margin-bottom: 24px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
     @csrf
     
     <!-- Progress Bar -->
-    <div id="upload-progress-container" style="display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: var(--bg-main);">
+    <div id="upload-progress-container" style="display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: var(--bg-main); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; overflow: hidden;">
         <div id="upload-progress-bar" style="height: 100%; width: 0%; background: #1d9bf0; transition: width 0.2s;"></div>
     </div>
     <div id="upload-status-text" style="display: none; position: absolute; bottom: 8px; right: 16px; font-size: 11px; color: #1d9bf0; font-weight: 600;">Mengunggah... 0%</div>

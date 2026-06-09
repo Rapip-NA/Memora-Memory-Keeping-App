@@ -6,11 +6,13 @@
             @php 
                 $avatar = $post->user->avatar_url;
             @endphp
-            <img src="{{ $avatar }}" alt="{{ $post->user->name ?? 'User' }}" class="avatar" style="object-fit: cover;">
-            <div>
-                <h4>{{ $post->user->name ?? 'User' }}</h4>
-                <p>{{ $post->category ?? 'Update' }} • {{ $post->created_at->diffForHumans() }}</p>
-            </div>
+            <a href="{{ route('desktop.profile') }}?user={{ $post->user->id }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;">
+                <img src="{{ $avatar }}" alt="{{ $post->user->name ?? 'User' }}" class="avatar" style="object-fit: cover;">
+                <div>
+                    <h4>{{ $post->user->name ?? 'User' }}</h4>
+                    <p>{{ $post->category ?? 'Update' }} • {{ $post->created_at->diffForHumans() }}</p>
+                </div>
+            </a>
         </div>
         
         @if(isset($currentUser) && $post->user_id === $currentUser->id && request()->routeIs('desktop.profile'))
@@ -61,7 +63,9 @@
             }
         @endphp
 
-        <p>{!! nl2br(e($cleanContent)) !!}</p>
+        <a href="{{ route('desktop.post.show', $post->id) }}" style="text-decoration: none; color: inherit; display: block;">
+            <p>{!! nl2br(e($cleanContent)) !!}</p>
+        </a>
         
         @if($isEvent)
         <!-- Enhanced Event Card UI -->
@@ -170,15 +174,13 @@
                                     }
                                 }
                             @endphp
-                            <div class="post-photo-wrapper" style="flex: 0 0 100%; scroll-snap-align: start; position: relative; {{ $isVideo ? '' : 'cursor: pointer;' }}" {!! $isVideo ? '' : 'onclick="handlePhotoClick(event, ' . $post->id . ', this)" data-gallery="post-' . $post->id . '" data-src="' . $mediaUrl . '"' !!}>
+                            <a href="{{ route('desktop.post.show', $post->id) }}" class="post-photo-wrapper" style="flex: 0 0 100%; scroll-snap-align: start; position: relative; display: block; cursor: pointer; text-decoration: none;">
                                 @if($isVideo)
-                                    <video preload="metadata" src="{{ $mediaUrl }}" controls style="width: 100%; height: auto; max-height: 800px; object-fit: cover; display: block;"></video>
+                                    <video preload="metadata" src="{{ $mediaUrl }}" controls onclick="event.preventDefault();" style="width: 100%; height: auto; max-height: 800px; object-fit: cover; display: block;"></video>
                                 @else
-                                    <img src="{{ $mediaUrl }}" alt="Post Photo" loading="lazy" style="width: 100%; height: auto; max-height: 800px; object-fit: cover; display: block; pointer-events: none;">
-                                    <!-- Heart animation overlay -->
-                                    <i class='bx bxs-heart heart-animation' style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 80px; color: rgba(255, 255, 255, 0.9); opacity: 0; pointer-events: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; z-index: 10; text-shadow: 0 4px 12px rgba(0,0,0,0.3);"></i>
+                                    <img src="{{ $mediaUrl }}" alt="Post Photo" loading="lazy" style="width: 100%; height: auto; max-height: 800px; object-fit: cover; display: block;">
                                 @endif
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                     
@@ -213,14 +215,13 @@
                         }
                     }
                 @endphp
-                <div class="post-image-grid mosaic post-photo-wrapper" style="margin-top: 12px; position: relative; {{ $isVideoSingle ? '' : 'cursor: pointer;' }}" {!! $isVideoSingle ? '' : 'onclick="handlePhotoClick(event, ' . $post->id . ', this)" data-gallery="post-' . $post->id . '" data-src="' . $singleMediaUrl . '"' !!}>
+                <a href="{{ route('desktop.post.show', $post->id) }}" class="post-image-grid mosaic" style="margin-top: 12px; display: block; text-decoration: none; cursor: pointer;">
                     @if($isVideoSingle)
-                        <video preload="metadata" src="{{ $singleMediaUrl }}" controls style="border-radius: 12px; width: 100%; height: auto; max-height: 800px; object-fit: cover; border: 1px solid var(--border-color); display: block;"></video>
+                        <video preload="metadata" src="{{ $singleMediaUrl }}" controls onclick="event.preventDefault();" style="border-radius: 12px; width: 100%; height: auto; max-height: 800px; object-fit: cover; border: 1px solid var(--border-color); display: block;"></video>
                     @else
-                        <img src="{{ $singleMediaUrl }}" alt="Post Photo" loading="lazy" style="border-radius: 12px; width: 100%; height: auto; max-height: 800px; object-fit: cover; border: 1px solid var(--border-color); display: block; pointer-events: none;">
-                        <i class='bx bxs-heart heart-animation' style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 80px; color: rgba(255, 255, 255, 0.9); opacity: 0; pointer-events: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; z-index: 10; text-shadow: 0 4px 12px rgba(0,0,0,0.3);"></i>
+                        <img src="{{ $singleMediaUrl }}" alt="Post Photo" loading="lazy" style="border-radius: 12px; width: 100%; height: auto; max-height: 800px; object-fit: cover; border: 1px solid var(--border-color); display: block;">
                     @endif
-                </div>
+                </a>
             @endif
         @endif
     </div>

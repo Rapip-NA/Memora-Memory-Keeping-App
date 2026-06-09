@@ -21,11 +21,12 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'member',
-            'status'   => 'pending',
+            'name'         => $request->name,
+            'email'        => $request->email,
+            'password'     => Hash::make($request->password),
+            'role'         => 'member',
+            'status'       => 'pending',
+            'classroom_id' => $request->classroom_id,
         ]);
 
         return response()->json([
@@ -46,7 +47,7 @@ class AuthController extends Controller
         if (! Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Email atau password salah',
+                'message' => 'Email atau kata sandi salah',
             ], 401);
         }
 

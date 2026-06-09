@@ -18,7 +18,7 @@
                 <div style="display: flex; gap: 16px;">
                     <!-- Avatar -->
                     @php 
-                        $uAvatar = auth()->user()->avatar_url ?? (\App\Models\User::first()->avatar_url ?? '');
+                        $uAvatar = auth()->user()->avatar_url ?? '';
                     @endphp
                     <img src="{{ $uAvatar }}" alt="User" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
                     

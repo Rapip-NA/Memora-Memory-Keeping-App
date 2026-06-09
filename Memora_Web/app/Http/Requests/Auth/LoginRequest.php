@@ -37,8 +37,8 @@ class LoginRequest extends FormRequest
         return [
             'email.required'    => 'Email wajib diisi.',
             'email.email'       => 'Format email tidak valid.',
-            'password.required' => 'Password wajib diisi.',
-            'password.string'   => 'Password harus berupa teks.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.string'   => 'Kata sandi harus berupa teks.',
         ];
     }
 }

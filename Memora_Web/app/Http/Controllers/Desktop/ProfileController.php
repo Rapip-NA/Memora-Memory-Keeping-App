@@ -13,19 +13,30 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class ProfileController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $currentUser = auth()->user() ?? User::first();
+        $currentLoggedIn = auth()->user();
+        
+        $userId = $request->query('user');
+        if ($userId && $userId != $currentLoggedIn->id) {
+            $currentUser = User::findOrFail($userId);
+            $isOwnProfile = false;
+        } else {
+            $currentUser = $currentLoggedIn;
+            $isOwnProfile = true;
+        }
+        
         $posts = Post::where('user_id', $currentUser->id)
                     ->with(['user', 'comments.user', 'likes', 'bookmarks'])
                     ->latest()
                     ->paginate(10);
-        return view('desktop.profile', compact('posts', 'currentUser'));
+                    
+        return view('desktop.profile', compact('posts', 'currentUser', 'isOwnProfile'));
     }
 
     public function update(Request $request)
     {
-        $user = auth()->user() ?? User::first();
+        $user = auth()->user();
         
         $request->validate([
             'name' => 'required|string|max:255',

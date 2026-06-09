@@ -2,32 +2,142 @@
 
 @section('content')
 @php
-    $currentUser = auth()->user() ?? \App\Models\User::first();
+    $currentUser = auth()->user();
 @endphp
 
+<style>
+    .folder-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 24px;
+        margin-top: 16px;
+    }
+
+    .folder-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.01);
+    }
+
+    .folder-card:hover {
+        transform: translateY(-6px);
+        border-color: #16a34a;
+        box-shadow: var(--shadow-hover);
+    }
+
+    .folder-thumbnail {
+        width: 100%;
+        aspect-ratio: 1.5;
+        background: var(--bg-main);
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .folder-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .folder-card:hover .folder-thumbnail img {
+        transform: scale(1.05);
+    }
+
+    .folder-thumbnail-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-light);
+        font-size: 32px;
+        background: linear-gradient(135deg, var(--bg-main), var(--border-color));
+    }
+
+    .folder-info {
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-card);
+    }
+
+    .folder-name-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .folder-name {
+        font-size: 16px;
+        font-weight: 750;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .folder-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .folder-icon {
+        font-size: 24px;
+        color: var(--text-light);
+        transition: color 0.2s;
+    }
+
+    .folder-card:hover .folder-icon {
+        color: #16a34a;
+    }
+
+    .btn-back-gallery {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        color: var(--text-dark);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-bottom: 24px;
+    }
+
+    .btn-back-gallery:hover {
+        background: var(--bg-main);
+        border-color: var(--text-light);
+        transform: translateX(-4px);
+    }
+</style>
+
 <div class="content-grid" style="grid-template-columns: 1fr;">
-    <div class="gallery-container">
+    <div class="gallery-container" style="min-width: 0;">
         
         <!-- Gallery Header -->
-        <div class="profile-header" style="background: linear-gradient(135deg, var(--text-dark), var(--primary-color)); padding: 40px; border-radius: var(--radius-lg); color: white; margin-bottom: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-            <i class='bx bx-images' style="font-size: 48px; margin-bottom: 16px; opacity: 0.9;"></i>
-            <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 8px;">Galeri Kenangan</h2>
-            <p style="font-size: 16px; opacity: 0.9; max-width: 600px;">Kumpulan foto kenangan angkatan kita. Bagikan momen tak terlupakanmu di sini.</p>
-            <div style="margin-top: 24px;">
-                <button class="btn-solid" onclick="openModal('uploadModal')" style="background: white; color: var(--text-dark); display: inline-flex; align-items: center; gap: 8px;"><i class='bx bx-upload'></i> Unggah Foto</button>
+        <div style="background: linear-gradient(135deg, #1a1a2e, #16a34a); padding: 48px 40px; border-radius: var(--radius-lg); color: white; margin-bottom: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0;">
+            <i class='bx bx-images' style="font-size: 52px; margin-bottom: 16px; opacity: 0.9;"></i>
+            <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 12px; color: white;">Galeri Kenangan</h2>
+            <p style="font-size: 16px; opacity: 0.85; max-width: 520px; line-height: 1.6; color: white; margin: 0;">Kumpulan foto kenangan angkatan kita. Bagikan momen tak terlupakan Anda di sini.</p>
+            <div style="margin-top: 28px;">
+                <button onclick="openModal('uploadModal')" style="background: white; color: #1a1a2e; border: none; padding: 12px 28px; border-radius: var(--radius-full); font-weight: 700; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 16px rgba(0,0,0,0.2);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.2)'">
+                    <i class='bx bx-upload'></i> Unggah Foto
+                </button>
             </div>
-        </div>
-
-        <!-- Filter/Tabs -->
-        @php
-            $currentAlbum = request('album', 'Semua');
-            $allAlbums = $allAlbums ?? ['Wisuda 2024', 'Malam Keakraban', 'Album Kelas', 'Lainnya'];
-        @endphp
-        <div style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; overflow-x: auto;">
-            <a href="{{ route('desktop.gallery', ['album' => 'Semua']) }}" class="{{ $currentAlbum == 'Semua' ? 'btn-solid' : 'btn-outline' }}" style="{{ $currentAlbum == 'Semua' ? 'padding: 8px 24px; font-size: 14px; text-decoration: none; white-space: nowrap;' : 'padding: 8px 24px; border: none; color: var(--text-muted); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap;' }}">Semua</a>
-            @foreach($allAlbums as $a)
-                <a href="{{ route('desktop.gallery', ['album' => $a]) }}" class="{{ $currentAlbum == $a ? 'btn-solid' : 'btn-outline' }}" style="{{ $currentAlbum == $a ? 'padding: 8px 24px; font-size: 14px; text-decoration: none; white-space: nowrap;' : 'padding: 8px 24px; border: none; color: var(--text-muted); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap;' }}">{{ $a }}</a>
-            @endforeach
         </div>
 
         @if(session('success'))
@@ -47,68 +157,79 @@
             </div>
         @endif
 
-        <!-- Gallery Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
+        @if($selectedAlbum)
+            <!-- Mode Folder Terbuka -->
+            <a href="{{ route('desktop.gallery') }}" class="btn-back-gallery">
+                <i class='bx bx-left-arrow-alt'></i> Kembali ke Album
+            </a>
             
-            <!-- Dynamic Items -->
-            @foreach($photos as $photo)
-            @php 
-                $isOwner = $currentUser && $photo->user_id == $currentUser->id ? 'true' : 'false'; 
-                $caption = addslashes(str_replace("\n", " ", $photo->caption));
-            @endphp
-            <div onclick="openPreview({{ $photo->id }}, '{{ Storage::url($photo->file_path) }}', '{{ $caption }}', '{{ $photo->user->name ?? 'Anonim' }}', {{ $isOwner }}, '{{ $photo->album ?? 'Lainnya' }}')" style="position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 1; cursor: pointer; group">
-                <img src="{{ Storage::url($photo->file_path) }}" alt="{{ $photo->caption }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; transform: scale(1.01);">
-                <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">
-                    {{ $photo->album ?? 'Lainnya' }}
-                </div>
-                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%); display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: white;">
-                    <h5 style="margin: 0; font-size: 14px; font-weight: 600;">{{ $photo->caption ?? 'Tanpa Caption' }}</h5>
-                    <p style="margin: 0; font-size: 12px; opacity: 0.8;">Oleh: {{ $photo->user->name ?? 'Anonim' }}</p>
-                </div>
-            </div>
-            @endforeach
-            
-            <!-- Static Items -->
-            @if($currentAlbum == 'Semua' || $currentAlbum == 'Wisuda 2024')
-            <div onclick="openPreview(0, 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 'Wisuda 2024', 'Jordan Chen', false, 'Wisuda 2024')" style="position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 1; cursor: pointer; group">
-                <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Graduation" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; transform: scale(1.01);">
-                <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">
-                    Wisuda 2024
-                </div>
-                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%); display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: white;">
-                    <h5 style="margin: 0; font-size: 14px; font-weight: 600;">Wisuda 2024</h5>
-                    <p style="margin: 0; font-size: 12px; opacity: 0.8;">Oleh: Jordan Chen</p>
-                </div>
-            </div>
-            @endif
+            <h3 style="font-size: 20px; font-weight: 750; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-folder-open' style="color: #16a34a; font-size: 24px;"></i>
+                Album: {{ $selectedAlbum }}
+            </h3>
 
-            @if($currentAlbum == 'Semua' || $currentAlbum == 'Malam Keakraban')
-            <div onclick="openPreview(0, 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 'Malam Keakraban', 'Maya', false, 'Malam Keakraban')" style="position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 1; cursor: pointer; group">
-                <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Friends" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; transform: scale(1.01);">
-                <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">
-                    Malam Keakraban
+            <!-- Gallery Grid (Photos) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
+                @foreach($photos as $photo)
+                @php 
+                    $isOwner = $currentUser && $photo->user_id == $currentUser->id ? 'true' : 'false'; 
+                    $caption = addslashes(str_replace("\n", " ", $photo->caption));
+                @endphp
+                <div onclick="openPreview({{ $photo->id }}, '{{ Storage::url($photo->file_path) }}', '{{ $caption }}', '{{ $photo->user->name ?? 'Anonim' }}', {{ $isOwner }}, '{{ $photo->album ?? 'Lainnya' }}')" style="position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 1; cursor: pointer; group">
+                    <img src="{{ Storage::url($photo->file_path) }}" alt="{{ $photo->caption }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; transform: scale(1.01);">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%); display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: white;">
+                        <h5 style="margin: 0; font-size: 14px; font-weight: 600;">{{ $photo->caption ?? 'Tanpa Caption' }}</h5>
+                        <p style="margin: 0; font-size: 12px; opacity: 0.8;">Oleh: {{ $photo->user->name ?? 'Anonim' }}</p>
+                    </div>
                 </div>
-                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%); display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: white;">
-                    <h5 style="margin: 0; font-size: 14px; font-weight: 600;">Malam Keakraban</h5>
-                    <p style="margin: 0; font-size: 12px; opacity: 0.8;">Oleh: Maya</p>
-                </div>
+                @endforeach
+                
+                @if($photos->count() == 0)
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 80px 40px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <i class='bx bx-image-alt' style="font-size: 48px; color: var(--text-light); margin-bottom: 16px;"></i>
+                        <h4 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 750;">Belum Ada Foto</h4>
+                        <p style="margin: 0; color: var(--text-muted); font-size: 14px;">Belum ada foto yang diunggah ke dalam album ini.</p>
+                    </div>
+                @endif
             </div>
-            @endif
+        @else
+            <!-- Mode Semua Folder/Album -->
+            <h3 style="font-size: 20px; font-weight: 750; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-folder' style="color: #16a34a; font-size: 24px;"></i>
+                Semua Album
+            </h3>
 
-            @if($currentAlbum == 'Semua' || $currentAlbum == 'Album Kelas')
-            <div onclick="openPreview(0, 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 'Nugas Bareng', 'Elena Rossi', false, 'Album Kelas')" style="position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 1; cursor: pointer; group">
-                <img src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Group Study" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; transform: scale(1.01);">
-                <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">
-                    Album Kelas
-                </div>
-                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%); display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: white;">
-                    <h5 style="margin: 0; font-size: 14px; font-weight: 600;">Nugas Bareng</h5>
-                    <p style="margin: 0; font-size: 12px; opacity: 0.8;">Oleh: Elena Rossi</p>
-                </div>
+            <div class="folder-grid">
+                @foreach($albums as $f)
+                    <a href="{{ route('desktop.gallery', ['album' => $f->album_name]) }}" class="folder-card">
+                        <div class="folder-thumbnail">
+                            @if($f->cover_url)
+                                <img src="{{ $f->cover_url }}" alt="{{ $f->album_name }}">
+                            @else
+                                <div class="folder-thumbnail-empty">
+                                    <i class='bx bx-image-alt'></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="folder-info">
+                            <div class="folder-name-container">
+                                <h4 class="folder-name">{{ $f->album_name }}</h4>
+                                <span class="folder-count">{{ $f->photo_count }} Foto</span>
+                            </div>
+                            <i class='bx bxs-folder-open folder-icon'></i>
+                        </div>
+                    </a>
+                @endforeach
+
+                @if($albums->count() == 0)
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 80px 40px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <i class='bx bx-folder' style="font-size: 48px; color: var(--text-light); margin-bottom: 16px;"></i>
+                        <h4 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 750;">Belum Ada Album</h4>
+                        <p style="margin: 0; color: var(--text-muted); font-size: 14px;">Mulai bagikan kenangan pertama Anda dengan mengunggah foto.</p>
+                    </div>
+                @endif
             </div>
-            @endif
-
-        </div>
+        @endif
     </div>
 </div>
 
@@ -130,9 +251,12 @@
             <form id="uploadForm" action="{{ route('desktop.gallery.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
-                <label id="uploadBox" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 160px; border: 2px dashed #c4b5fd; border-radius: 16px; background: white; margin-bottom: 24px; cursor: pointer; color: #8b5cf6; transition: all 0.2s;">
-                    <i id="uploadIcon" class='bx bx-plus' style="font-size: 24px; margin-bottom: 8px;"></i>
-                    <span id="uploadText" style="font-size: 14px; font-weight: 500;">Tambah</span>
+                <label id="uploadBox" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 180px; border: 2px dashed #c4b5fd; border-radius: 16px; background: white; margin-bottom: 24px; cursor: pointer; color: #8b5cf6; transition: all 0.2s; position: relative; overflow: hidden;">
+                    <div id="uploadPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <i id="uploadIcon" class='bx bx-plus' style="font-size: 28px; margin-bottom: 8px;"></i>
+                        <span id="uploadText" style="font-size: 14px; font-weight: 600;">Pilih Foto</span>
+                    </div>
+                    <img id="uploadPreview" src="" style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;">
                     <input type="file" name="photo" accept="image/*" required style="display: none;" onchange="updateFileName(this)">
                 </label>
 
@@ -143,8 +267,11 @@
                 </div>
                 <div style="background: white; border-radius: 16px; padding: 12px 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
                     <select name="album_select" onchange="checkNewAlbum(this, 'newAlbumInputContainer')" style="width: 100%; border: none; outline: none; font-size: 14px; color: #333; font-family: inherit; background: transparent; cursor: pointer;">
+                        <option value="Lainnya" selected>Lainnya</option>
                         @foreach($allAlbums as $a)
-                            <option value="{{ $a }}" {{ $a == 'Lainnya' ? 'selected' : '' }}>{{ $a }}</option>
+                            @if($a !== 'Lainnya')
+                                <option value="{{ $a }}">{{ $a }}</option>
+                            @endif
                         @endforeach
                         <option value="new_album">+ Tambah Album Baru...</option>
                     </select>
@@ -223,8 +350,11 @@
             <div style="margin-bottom: 16px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #333;">Album</label>
                 <select id="editAlbumInput" name="album_select" onchange="checkNewAlbum(this, 'editNewAlbumInputContainer')" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb; font-size: 14px; outline: none; background: #f9fafb; cursor: pointer;">
+                    <option value="Lainnya">Lainnya</option>
                     @foreach($allAlbums as $a)
-                        <option value="{{ $a }}">{{ $a }}</option>
+                        @if($a !== 'Lainnya')
+                            <option value="{{ $a }}">{{ $a }}</option>
+                        @endif
                     @endforeach
                     <option value="new_album">+ Tambah Album Baru...</option>
                 </select>
@@ -250,12 +380,27 @@
 <script>
     function openModal(id) {
         document.getElementById(id).style.display = 'flex';
+        if (id === 'uploadModal') {
+            const select = document.querySelector('#uploadModal select[name="album_select"]');
+            if (select) {
+                checkNewAlbum(select, 'newAlbumInputContainer');
+            }
+        }
     }
     
     function closeModal(id) {
         document.getElementById(id).style.display = 'none';
         if(id === 'previewModal') {
             document.getElementById('optionsDropdown').style.display = 'none';
+        }
+        if(id === 'uploadModal') {
+            document.getElementById('uploadForm').reset();
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const preview = document.getElementById('uploadPreview');
+            const box = document.getElementById('uploadBox');
+            if (preview) preview.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
+            if (box) box.style.border = '2px dashed #c4b5fd';
         }
     }
 
@@ -308,26 +453,31 @@
     function openEditModal() {
         closeModal('previewModal');
         openModal('editModal');
+        const select = document.getElementById('editAlbumInput');
+        if (select) {
+            checkNewAlbum(select, 'editNewAlbumInputContainer');
+        }
     }
 
     function updateFileName(input) {
-        const textSpan = document.getElementById('uploadText');
-        const icon = document.getElementById('uploadIcon');
+        const placeholder = document.getElementById('uploadPlaceholder');
+        const preview = document.getElementById('uploadPreview');
         const box = document.getElementById('uploadBox');
-        if (input.files && input.files.length > 0) {
-            box.style.border = '2px solid #7c3aed';
-            box.style.background = '#f3e8ff';
-            icon.className = 'bx bx-check-circle';
-            icon.style.color = '#7c3aed';
-            textSpan.innerText = 'Foto Siap Diunggah';
-            textSpan.style.color = '#7c3aed';
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                box.style.border = '2px solid #7c3aed';
+            }
+            reader.readAsDataURL(input.files[0]);
         } else {
+            preview.src = '';
+            preview.style.display = 'none';
+            placeholder.style.display = 'flex';
             box.style.border = '2px dashed #c4b5fd';
-            box.style.background = 'white';
-            icon.className = 'bx bx-plus';
-            icon.style.color = '#8b5cf6';
-            textSpan.innerText = 'Tambah';
-            textSpan.style.color = '#8b5cf6';
         }
     }
 

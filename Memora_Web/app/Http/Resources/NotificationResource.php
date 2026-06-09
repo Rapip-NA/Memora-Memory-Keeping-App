@@ -35,6 +35,8 @@ class NotificationResource extends JsonResource
             'new_post'  => '📝 Post Baru',
             'broadcast' => '📢 Pengumuman',
             'approval'  => '✅ Akun Disetujui',
+            'like'      => '❤️ Menyukai Postingan',
+            'comment'   => '💬 Komentar Baru',
             default     => 'Notifikasi',
         };
     }
